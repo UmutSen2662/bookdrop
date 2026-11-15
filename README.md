@@ -2,7 +2,7 @@
 
 **Drop your ebooks in. Get one organized library with clean metadata and a reading log.**
 
-![Bookdrop library grid](docs/screenshots/library.png)
+![Bookdrop library grid](docs/screenshots/library.webp)
 
 Bookdrop is a lightweight desktop app for Windows that turns a pile of ebook
 files into one organized library. Drop EPUB, PDF, MOBI, AZW3, RTF, DOCX, HTML,
@@ -25,7 +25,7 @@ your e-reader.
 - **Keyboard friendly.** Arrow keys move through the grid, `/` or `Ctrl+F`
   focuses search, and Escape clears search or selection.
 
-![Metadata editor](docs/screenshots/metadata.png)
+![Metadata editor](docs/screenshots/metadata.webp)
 
 ## Why it's built this way
 
