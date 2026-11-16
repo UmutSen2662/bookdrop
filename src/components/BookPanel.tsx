@@ -213,7 +213,7 @@ export function BookPanel({
   const outside = !book.missing && isOutsideLibrary(book, libraryDir);
 
   return (
-    <div className="h-full overflow-y-auto p-5 pr-3">
+    <div className="h-full select-text overflow-y-auto p-5 pr-3">
       <div className="mx-auto w-full">
         <button
           type="button"

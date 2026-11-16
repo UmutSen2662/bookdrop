@@ -209,7 +209,7 @@ export function BookGrid({
 
   return (
     <div
-      className="mx-auto w-full max-w-[1500px] pb-28 pt-6"
+      className="mx-auto w-full max-w-[1500px] pb-10 pt-6"
       style={{ paddingLeft: LAYOUT.gridPadX, paddingRight: LAYOUT.gridPadX }}
     >
       {pending.length > 0 && (

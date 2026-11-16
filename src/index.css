@@ -126,7 +126,7 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-sans select-none;
     scrollbar-width: thin;
     scrollbar-color: color-mix(
         in oklch,
@@ -155,5 +155,16 @@
       var(--muted-foreground) 55%,
       transparent
     );
+  }
+  /* The app reads as a desktop window, not a document: text is not selectable
+     except where it is edited or read. Portals (dialogs, popovers, toasts) sit
+     under body, so the rule has to be global rather than on the app root. */
+  input,
+  textarea,
+  [contenteditable] {
+    @apply select-text;
+  }
+  img {
+    -webkit-user-drag: none;
   }
 }

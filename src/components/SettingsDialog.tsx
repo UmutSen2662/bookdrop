@@ -1,4 +1,3 @@
-import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -6,6 +5,7 @@ import { FolderOpen, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatBytes } from "../lib/format";
 import { CALIBRE_DOWNLOAD_URL } from "../lib/links";
+import { useAppVersion } from "../lib/useAppVersion";
 import type { CalibreInstall } from "../pipeline/calibre";
 import type { Config } from "../pipeline/config";
 import { errorMessage } from "../pipeline/errors";
@@ -126,7 +126,7 @@ export function SettingsDialog({
   >(undefined);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState<string | null>(null);
+  const version = useAppVersion();
   const templateInput = useRef<HTMLInputElement>(null);
   const templateRef = useRef(template);
   templateRef.current = template;
@@ -175,18 +175,6 @@ export function SettingsDialog({
         ),
     [books, effectiveTemplate, libraryDir],
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    void getVersion()
-      .then((value) => {
-        if (!cancelled) setVersion(value);
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (!originalsDir) {

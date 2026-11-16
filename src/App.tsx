@@ -8,6 +8,7 @@ import { BookPanel } from "./components/BookPanel";
 import { BookSheet } from "./components/BookSheet";
 import { CoverLightbox } from "./components/CoverLightbox";
 import { FirstRun } from "./components/FirstRun";
+import { Footer } from "./components/Footer";
 import { RemoveDialog } from "./components/RemoveDialog";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { Toasts } from "./components/Toasts";
@@ -402,9 +403,15 @@ function App() {
     library.setSelectedId,
   ]);
 
-  const otherIssues = library.issues.filter(
-    (issue) => !issue.toLowerCase().includes("calibre"),
-  );
+  // calibre problems have their own banner above the grid. Duplicates would
+  // only repeat the same line in the footer popover.
+  const startupNotices = [
+    ...new Set(
+      library.issues.filter(
+        (issue) => !issue.toLowerCase().includes("calibre"),
+      ),
+    ),
+  ];
 
   if (library.phase === "loading") {
     return (
@@ -604,21 +611,6 @@ function App() {
           </div>
         )}
 
-        {otherIssues.length > 0 && (
-          <div className="border-b bg-muted/40 px-4 py-2">
-            <div className="mx-auto w-full max-w-[1500px] text-xs text-muted-foreground">
-              {otherIssues.slice(0, 2).map((issue) => (
-                <p key={issue} className="truncate" title={issue}>
-                  {issue}
-                </p>
-              ))}
-              {otherIssues.length > 2 && (
-                <p>+{otherIssues.length - 2} more startup notice(s)</p>
-              )}
-            </div>
-          </div>
-        )}
-
         <main
           className="flex min-h-0 flex-1 flex-col overflow-y-auto"
           onClick={(event) => {
@@ -657,6 +649,8 @@ function App() {
             }}
           />
         </main>
+
+        <Footer notices={startupNotices} />
       </div>
 
       {wide && (
