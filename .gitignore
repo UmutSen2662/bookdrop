@@ -29,5 +29,13 @@ out/
 # Generated release checksums
 SHA256SUMS.txt
 
+# Generated updater manifest
+latest.json
+
+# Signing keys and their public halves must never be committed
+*.key
+*.key.pub
+.tauri/
+
 # Local test books (never commit copyrighted files)
 samples/

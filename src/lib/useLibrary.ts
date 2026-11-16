@@ -881,6 +881,7 @@ export function useLibrary(options: Options) {
     setSelectedId,
     showBook: reveal,
     dismissToast,
+    pushToast,
     chooseLibraryFolder,
     saveSettings,
     recheckCalibre,

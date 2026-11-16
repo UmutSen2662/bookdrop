@@ -1,7 +1,7 @@
 {
   "name": "bookdrop",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Drop your ebooks in. Get one organized library with clean metadata and a reading log.",
   "license": "MIT",
   "type": "module",
@@ -15,7 +15,8 @@
     "lint": "biome check",
     "lint:fix": "biome check --write",
     "format": "biome format --write",
-    "checksums": "bun scripts/checksums.ts"
+    "checksums": "bun scripts/checksums.ts",
+    "latest-json": "bun scripts/latest-json.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -24,6 +25,7 @@
     "@tauri-apps/plugin-dialog": "^2.8.4",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-sql": "^2.6.0",
+    "@tauri-apps/plugin-updater": "^2.14.1",
     "@xmldom/xmldom": "^0.9.12",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",

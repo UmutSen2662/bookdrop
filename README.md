@@ -67,13 +67,17 @@ PC." Choose **More info**, then **Run anyway**. Each release includes a
 `SHA256SUMS.txt`. To verify a download in PowerShell:
 
 ```powershell
-Get-FileHash .\Bookdrop_1.0.0_x64-setup.exe -Algorithm SHA256
+Get-FileHash .\Bookdrop_1.1.0_x64-setup.exe -Algorithm SHA256
 ```
 
 Compare the result with the matching line in the checksums file.
 
-Updates are manual: close Bookdrop, run the newer installer, and reopen. Your
-library and `%LOCALAPPDATA%\bookdrop` data are left in place.
+Updates are built in. Bookdrop checks GitHub shortly after launch, and
+**Check for updates** in the footer checks on demand. When a newer release is
+found, clicking **Update available** downloads, installs, and reopens the app.
+Version 1.0.0 predates the updater, so install 1.1.0 manually once; later
+releases update themselves. Your library and `%LOCALAPPDATA%\bookdrop` data are
+left in place either way.
 
 ## Development
 
@@ -85,12 +89,19 @@ bun install
 bun run tauri dev
 ```
 
-To produce an installer and checksums:
+To produce an installer, checksums, and the updater manifest:
 
 ```bat
+set TAURI_SIGNING_PRIVATE_KEY=%USERPROFILE%\.tauri\bookdrop.key
+set TAURI_SIGNING_PRIVATE_KEY_PASSWORD=your-key-password
 bun run tauri build
 bun run checksums
+bun run latest-json "What changed in this release"
 ```
+
+The updater signs every build, so `tauri build` fails without the key. Upload
+the NSIS installer, its `.sig` file, `SHA256SUMS.txt`, and `latest.json` to the
+release. The app reads `latest.json` from the newest non-prerelease.
 
 Common checks:
 
@@ -120,10 +131,11 @@ folder opens the location for you.
 
 ## Privacy
 
-Bookdrop has no telemetry and no account. Files stay on your machine. Metadata
-lookups send a book's title, author, or ISBN to Google Books and Open Library
-(through calibre), and to iTunes and Open Library directly. Cover images are
-downloaded from those services.
+Bookdrop has no telemetry and no account. Files stay on your machine. Launching
+the app checks GitHub for a newer release; that request contains no library,
+account, or usage data. Metadata lookups send a book's title, author, or ISBN to
+Google Books and Open Library (through calibre), and to iTunes and Open Library
+directly. Cover images are downloaded from those services.
 
 ## Not affiliated with calibre
 

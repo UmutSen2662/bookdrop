@@ -28,12 +28,23 @@ if (!existsSync(bundleDir)) {
   process.exit(1);
 }
 
+const config = JSON.parse(
+  readFileSync(join(root, "src-tauri", "tauri.conf.json"), "utf8"),
+) as { version: string };
+const version = config.version;
+
 const installers = walk(bundleDir)
-  .filter((path) => /\.msi$/iu.test(path) || /-setup\.exe$/iu.test(path))
+  .filter(
+    (path) =>
+      (/\.msi$/iu.test(path) || /-setup\.exe$/iu.test(path)) &&
+      basename(path).includes(version),
+  )
   .sort();
 
 if (installers.length === 0) {
-  console.error("No installers found. Run `bun run tauri build` first.");
+  console.error(
+    `No ${version} installers found. Check tauri.conf.json and rebuild.`,
+  );
   process.exit(1);
 }
 

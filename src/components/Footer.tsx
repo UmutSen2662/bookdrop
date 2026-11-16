@@ -1,5 +1,6 @@
-import { RELEASES_URL } from "../lib/links";
+import { cn } from "@/lib/utils";
 import { useAppVersion } from "../lib/useAppVersion";
+import { type UpdateState, useUpdater } from "../lib/useUpdater";
 import { Button } from "./ui/button";
 import {
   Popover,
@@ -11,15 +12,37 @@ import {
 type Props = {
   /** Startup notices that do not belong in a blocking banner. */
   notices: string[];
+  onUpdateError: (title: string, detail?: string) => void;
 };
+
+function labelFor(state: UpdateState): string {
+  switch (state.kind) {
+    case "checking":
+      return "Checking…";
+    case "current":
+      return "Up to date";
+    case "available":
+      return "Update available";
+    case "installing":
+      return state.percent === null
+        ? "Downloading…"
+        : `Downloading… ${state.percent}%`;
+    default:
+      return "Check for updates";
+  }
+}
 
 /**
  * The quiet row under the grid: startup notices on the left, app version and
- * the releases link on the right. The releases link is a plain anchor that the
- * app hands to the system browser until the in-app updater exists.
+ * the update check on the right. There is no confirmation dialog; clicking
+ * "Update available" downloads, installs, and reopens the app in one step.
  */
-export function Footer({ notices }: Props) {
+export function Footer({ notices, onUpdateError }: Props) {
   const version = useAppVersion();
+  const { state, checkForUpdates, install } = useUpdater({
+    onError: onUpdateError,
+  });
+  const actionable = state.kind === "idle" || state.kind === "available";
 
   return (
     <footer className="shrink-0 border-t bg-background">
@@ -57,12 +80,36 @@ export function Footer({ notices }: Props) {
         )}
 
         <div className="ml-auto flex items-center gap-1.5">
-          <a
-            href={RELEASES_URL}
-            className="rounded-sm underline-offset-2 hover:text-foreground hover:underline"
-          >
-            Releases
-          </a>
+          <span aria-live="polite" className="flex items-center">
+            {actionable ? (
+              <Button
+                variant="ghost"
+                size="xs"
+                title={
+                  state.kind === "available"
+                    ? `Version ${state.version} is ready to install`
+                    : undefined
+                }
+                className={cn(
+                  "-mx-1.5 px-1.5",
+                  state.kind === "available" && "font-medium text-primary",
+                )}
+                onClick={() =>
+                  state.kind === "available"
+                    ? void install()
+                    : checkForUpdates()
+                }
+              >
+                {labelFor(state)}
+              </Button>
+            ) : (
+              <span
+                className={state.kind === "installing" ? "tabular-nums" : ""}
+              >
+                {labelFor(state)}
+              </span>
+            )}
+          </span>
           {version && (
             <>
               <span aria-hidden className="text-muted-foreground/60">

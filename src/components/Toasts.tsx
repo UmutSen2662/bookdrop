@@ -37,7 +37,7 @@ export function Toasts({ toasts, onDismiss }: Props) {
   const hidden = toasts.length - visible.length;
 
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[23rem] flex-col gap-2">
+    <div className="pointer-events-none fixed bottom-14 right-4 z-50 flex w-[23rem] flex-col gap-2">
       {hidden > 0 && (
         <p className="self-end text-xs text-muted-foreground">+{hidden} more</p>
       )}

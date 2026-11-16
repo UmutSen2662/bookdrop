@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Bookdrop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "identifier": "com.umut.bookdrop",
   "build": {
     "beforeDevCommand": "bun run dev",
@@ -37,6 +37,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "publisher": "Umut Sen",
     "copyright": "Copyright © 2026 Umut Sen",
     "license": "MIT",
@@ -52,6 +53,14 @@
     "resources": {
       "../LICENSE": "LICENSE.txt",
       "../THIRD-PARTY.md": "THIRD-PARTY.md"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQxNjQ5MUY0NUMxM0ZBNUYKUldSZitoTmM5SkZrUVZPckZlNWpJc3ZyNWJnNDJGUEtrV2VLd2hNVjZnRnpzSlRXYlhIejZXeWgK",
+      "endpoints": [
+        "https://github.com/UmutSen2662/bookdrop/releases/latest/download/latest.json"
+      ]
     }
   }
 }

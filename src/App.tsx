@@ -650,7 +650,12 @@ function App() {
           />
         </main>
 
-        <Footer notices={startupNotices} />
+        <Footer
+          notices={startupNotices}
+          onUpdateError={(title, detail) =>
+            library.pushToast({ title, detail, tone: "error" })
+          }
+        />
       </div>
 
       {wide && (
