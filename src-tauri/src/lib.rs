@@ -3,6 +3,7 @@ mod opds;
 
 use std::path::Path;
 use tauri::Manager;
+use tauri_plugin_window_state::{StateFlags, WindowExt};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -28,6 +29,14 @@ pub fn run() {
                 let _ = scope.allow_directory(Path::new(&home).join("covers"), true);
                 let _ = scope.allow_directory(Path::new(&home).join("candidates"), true);
             }
+
+            // The window starts hidden (tauri.conf.json). Restore its saved
+            // position before showing it so it never appears at the OS default.
+            let window = app
+                .get_webview_window("main")
+                .ok_or("main window not found")?;
+            window.restore_state(StateFlags::all())?;
+            window.show()?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -52,7 +61,12 @@ pub fn run() {
             opds::set_share_books,
             opds::share_status
         ])
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        // Restored by hand in setup, before the window is shown.
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .skip_initial_state("main")
+                .build(),
+        )
         .manage(opds::OpdsState::default())
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
