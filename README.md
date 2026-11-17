@@ -24,6 +24,8 @@ your e-reader.
   them.
 - **Keyboard friendly.** Arrow keys move through the grid, `/` or `Ctrl+F`
   focuses search, and Escape clears search or selection.
+- **Wireless transfer.** Share the library over Wi-Fi as an OPDS catalog and
+  pull books straight onto a KOReader device, no cable and no calibre server.
 
 ![Metadata editor](docs/screenshots/metadata.webp)
 
@@ -37,6 +39,42 @@ your e-reader.
 - **Missing files don't lose data.** If a library EPUB disappears, the book keeps
   its metadata, reading state, and notes, and is flagged in the grid with Open
   folder, Recheck, and Remove options.
+- **Sharing is a session, not a setting.** Nothing listens on the network until
+  you ask it to, and the catalog is gone when you close the app.
+
+## Send books to your reader over Wi-Fi
+
+Drop the cable. **Share over Wi-Fi** in the footer turns the library into an
+[OPDS](https://opds.io/) catalog that a reader on the same network can browse.
+
+1. Click **Share over Wi-Fi** in the footer. Bookdrop shows an address such as
+   `http://192.168.1.5:8099/opds`, a Copy button, and how many books are
+   included.
+2. On a device running [KOReader](https://koreader.rocks/), open the search
+   menu → **OPDS catalog** → **Add catalog**, and paste that address.
+3. Browse and download EPUBs. Sharing ends when you click **Stop sharing**,
+   close Bookdrop, or lose the network.
+
+The catalog has every book with a readable file, including books still marked
+Needs attention. It is sorted by title and searchable from KOReader. Books that
+are missing, failed to convert, or have no file are left out.
+
+A few practical notes:
+
+- It is plain HTTP on your local network, with no account. Anyone who can reach
+  the address can browse and download the library, so share on networks you
+  trust and stop when you are done. The popover says this every time.
+- The port is 8099, deliberately away from calibre's content server on 8080.
+- Windows may ask to let Bookdrop through the firewall the first time. If the
+  reader cannot connect, check that prompt and whether the network is marked
+  public.
+- The address changes when the computer's IP address changes. Each candidate is
+  labelled with its adapter (Wi-Fi, VPN, vEthernet) because only the one on the
+  reader's network can reach it. A DHCP reservation on the router keeps the
+  address stable; Bookdrop refreshes the list whenever you open it.
+- Names such as `terra.local` need mDNS on the reader. Kindle firmware does not
+  provide it, so use the IP address there.
+- Sharing only works while Bookdrop is open. Nothing is uploaded anywhere.
 
 ## Tech stack
 
@@ -67,7 +105,7 @@ PC." Choose **More info**, then **Run anyway**. Each release includes a
 `SHA256SUMS.txt`. To verify a download in PowerShell:
 
 ```powershell
-Get-FileHash .\Bookdrop_1.1.0_x64-setup.exe -Algorithm SHA256
+Get-FileHash .\Bookdrop_*_x64-setup.exe -Algorithm SHA256
 ```
 
 Compare the result with the matching line in the checksums file.
@@ -75,9 +113,9 @@ Compare the result with the matching line in the checksums file.
 Updates are built in. Bookdrop checks GitHub shortly after launch, and
 **Check for updates** in the footer checks on demand. When a newer release is
 found, clicking **Update available** downloads, installs, and reopens the app.
-Version 1.0.0 predates the updater, so install 1.1.0 manually once; later
-releases update themselves. Your library and `%LOCALAPPDATA%\bookdrop` data are
-left in place either way.
+Versions before 1.1.0 predate the updater, so install the latest release
+manually once; from 1.1.0 on, updates happen in place. Your library and
+`%LOCALAPPDATA%\bookdrop` data are left in place either way.
 
 ## Development
 
@@ -89,7 +127,8 @@ bun install
 bun run tauri dev
 ```
 
-To produce an installer, checksums, and the updater manifest:
+To produce an installer, checksums, and the updater manifest, set the signing
+key in the same window that runs the build:
 
 ```bat
 set TAURI_SIGNING_PRIVATE_KEY=%USERPROFILE%\.tauri\bookdrop.key
@@ -98,6 +137,28 @@ bun run tauri build
 bun run checksums
 bun run latest-json "What changed in this release"
 ```
+
+Environment variables live only in the window that sets them. Opening another
+terminal, or setting them in one tab and building in another, gives "a public
+key has been found, but no private key." PowerShell needs the `$env:` form:
+`set` there only creates a local variable, and the build still fails.
+
+```powershell
+$env:TAURI_SIGNING_PRIVATE_KEY = "$env:USERPROFILE\.tauri\bookdrop.key"
+$env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = "your-key-password"
+bun run tauri build
+```
+
+The key is generated once and kept outside the repository:
+
+```bat
+bunx tauri signer generate -w %USERPROFILE%\.tauri\bookdrop.key
+```
+
+Store its password somewhere safe. A new key pair means a new
+`plugins.updater.pubkey` in `src-tauri/tauri.conf.json`, and installed copies
+only trust the key they shipped with, so they reject builds signed by a
+different one.
 
 The updater signs every build, so `tauri build` fails without the key. Upload
 the NSIS installer, its `.sig` file, `SHA256SUMS.txt`, and `latest.json` to the
@@ -136,6 +197,11 @@ the app checks GitHub for a newer release; that request contains no library,
 account, or usage data. Metadata lookups send a book's title, author, or ISBN to
 Google Books and Open Library (through calibre), and to iTunes and Open Library
 directly. Cover images are downloaded from those services.
+
+Sharing over Wi-Fi is the one thing that listens on a network, and only while
+you keep it on: the catalog and the EPUBs it serves stay on your local network,
+Bookdrop does not phone home, and nothing is uploaded. Anyone who can reach the
+address can read the catalog, so treat the address like the library itself.
 
 ## Not affiliated with calibre
 

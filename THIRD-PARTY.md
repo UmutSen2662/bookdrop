@@ -24,10 +24,10 @@ following projects. Full license texts ship with each package in
 ## Rust dependencies
 
 The Rust dependencies declared in `src-tauri/Cargo.toml` — Tauri, Serde,
-`sha2`, `base64`, `image`, and `reqwest` — are dual-licensed under MIT and/or
-Apache-2.0. Transitive dependencies under `src-tauri/Cargo.lock` carry their
-own MIT, Apache-2.0, BSD, ISC, or Unicode licenses; their texts are available
-from the crates.io packages.
+`sha2`, `base64`, `image`, `reqwest`, `axum`, `tokio`, `tower-http`, and
+`if-addrs` — carry MIT, Apache-2.0, or BSD-3-Clause licenses. Transitive
+dependencies under `src-tauri/Cargo.lock` carry their own MIT, Apache-2.0, BSD,
+ISC, or Unicode licenses; their texts are available from the crates.io packages.
 
 ## Not included
 

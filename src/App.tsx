@@ -22,6 +22,7 @@ import { sortBooks } from "./lib/sort";
 import { parseTags } from "./lib/tags";
 import { useLibrary } from "./lib/useLibrary";
 import { useMediaQuery } from "./lib/useMediaQuery";
+import { useOpds } from "./lib/useOpds";
 import { dirname } from "./pipeline/paths";
 import type { Book } from "./pipeline/types";
 
@@ -54,6 +55,8 @@ function App() {
 
   const ingestRef = useRef(library.ingestPaths);
   ingestRef.current = library.ingestPaths;
+
+  const share = useOpds(library.books, library.config?.homeDir ?? "");
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebounced(query), 100);
@@ -652,6 +655,7 @@ function App() {
 
         <Footer
           notices={startupNotices}
+          share={share.supported ? share : null}
           onUpdateError={(title, detail) =>
             library.pushToast({ title, detail, tone: "error" })
           }

@@ -18,7 +18,7 @@ export default defineConfig(() => ({
   build: {
     // One window and one initial route: splitting the bundle would only add
     // request overhead. The desktop app ships the JS locally.
-    chunkSizeWarningLimit: 700,
+    chunkSizeWarningLimit: 750,
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import { useAppVersion } from "../lib/useAppVersion";
+import type { ShareController } from "../lib/useOpds";
 import { type UpdateState, useUpdater } from "../lib/useUpdater";
+import { ShareButton } from "./ShareMenu";
 import { Button } from "./ui/button";
 import {
   Popover,
@@ -12,6 +14,8 @@ import {
 type Props = {
   /** Startup notices that do not belong in a blocking banner. */
   notices: string[];
+  /** Null outside Tauri, where there is no server to start. */
+  share: ShareController | null;
   onUpdateError: (title: string, detail?: string) => void;
 };
 
@@ -33,11 +37,12 @@ function labelFor(state: UpdateState): string {
 }
 
 /**
- * The quiet row under the grid: startup notices on the left, app version and
- * the update check on the right. There is no confirmation dialog; clicking
- * "Update available" downloads, installs, and reopens the app in one step.
+ * The quiet row under the grid: sharing and startup notices on the left, app
+ * version and the update check on the right. There is no confirmation dialog;
+ * clicking "Update available" downloads, installs, and reopens the app in one
+ * step.
  */
-export function Footer({ notices, onUpdateError }: Props) {
+export function Footer({ notices, share, onUpdateError }: Props) {
   const version = useAppVersion();
   const { state, checkForUpdates, install } = useUpdater({
     onError: onUpdateError,
@@ -46,11 +51,27 @@ export function Footer({ notices, onUpdateError }: Props) {
 
   return (
     <footer className="shrink-0 border-t bg-background">
-      <div className="mx-auto flex h-9 w-full max-w-[1500px] items-center gap-3 px-4 text-xs text-muted-foreground">
+      <div className="mx-auto flex h-9 w-full max-w-[1500px] items-center gap-4 px-4 text-xs text-muted-foreground">
+        {share && (
+          <span aria-live="polite" className="flex items-center">
+            <ShareButton
+              state={share.state}
+              onStart={share.start}
+              onStop={share.stop}
+              onRefresh={share.refresh}
+            />
+          </span>
+        )}
         {notices.length > 0 && (
           <Popover>
             <PopoverTrigger
-              render={<Button variant="ghost" size="xs" className="-ml-2" />}
+              render={
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  className={share ? "" : "-ml-2"}
+                />
+              }
             >
               {notices.length} startup{" "}
               {notices.length === 1 ? "notice" : "notices"}

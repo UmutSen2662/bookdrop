@@ -1,4 +1,5 @@
 mod host;
+mod opds;
 
 use std::path::Path;
 use tauri::Manager;
@@ -45,9 +46,21 @@ pub fn run() {
             host::make_thumbnail,
             host::image_size,
             host::env_var,
-            host::open_path
+            host::open_path,
+            opds::start_sharing,
+            opds::stop_sharing,
+            opds::set_share_books,
+            opds::share_status
         ])
         .plugin(tauri_plugin_window_state::Builder::default().build())
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .manage(opds::OpdsState::default())
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            // Closing the window ends the process, so this mostly lets an
+            // in-flight download finish.
+            if matches!(event, tauri::RunEvent::Exit) {
+                opds::shutdown(app);
+            }
+        });
 }
