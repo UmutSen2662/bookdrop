@@ -11,7 +11,8 @@ The user builds the Windows installers. Everything else is yours. Keep the user 
 
 1. Confirm the target version `X.Y.Z`. If the user did not give one, propose one using semver (feature: minor, fix: patch) and wait for a yes.
 2. Run `git status`. Stop and tell the user if there are uncommitted changes that are not part of this release.
-3. Run `git log --oneline` and find the last release tag with `git tag --sort=-v:refname | head -1`.
+3. Run `git fetch --tags`. Release tags are created on GitHub, so a local clone may not have them yet.
+4. Find the last release tag with `git tag --sort=-v:refname | head -1`.
 
 ## Steps
 

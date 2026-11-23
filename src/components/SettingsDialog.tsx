@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import { downloadDir } from "@tauri-apps/api/path";
+import { save as chooseSavePath, open } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { FolderOpen, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -17,6 +18,7 @@ import {
   formatLibraryFileName,
   templateProblems,
 } from "../pipeline/names";
+import { notesExportFileName, notesExportJson } from "../pipeline/notes";
 import {
   basename,
   dirname,
@@ -126,6 +128,7 @@ export function SettingsDialog({
   >(undefined);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
   const version = useAppVersion();
   const templateInput = useRef<HTMLInputElement>(null);
   const templateRef = useRef(template);
@@ -223,6 +226,32 @@ export function SettingsDialog({
       title: "Choose the calibre folder",
     });
     if (typeof selected === "string") setCalibreDir(selected);
+  }
+
+  async function exportNotes() {
+    setError(null);
+    setExportMessage(null);
+    try {
+      const exportedAt = new Date();
+      const path = await chooseSavePath({
+        title: "Export notes",
+        defaultPath: joinPath(
+          await downloadDir(),
+          notesExportFileName(exportedAt),
+        ),
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      if (!path) return;
+      const bytes = new TextEncoder().encode(
+        notesExportJson(books, exportedAt),
+      );
+      await host.writeFileAtomic(path, bytes);
+      setExportMessage(
+        `Exported ${books.length} ${books.length === 1 ? "book" : "books"} to ${basename(path)}.`,
+      );
+    } catch (exportError) {
+      setError(errorMessage(exportError));
+    }
   }
 
   async function openDownload() {
@@ -737,6 +766,25 @@ export function SettingsDialog({
               Reading status and notes live here. Close Bookdrop before copying
               this folder as a backup.
             </p>
+          </section>
+
+          <section className="mt-6">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Notes
+            </h3>
+            <div className="mt-2 flex items-center gap-2">
+              <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+                {exportMessage ??
+                  "Export reading status and personal notes to a JSON file."}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void exportNotes()}
+              >
+                Export
+              </Button>
+            </div>
           </section>
 
           <section className="mt-6 border-t pt-4">
