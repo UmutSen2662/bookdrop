@@ -32,7 +32,10 @@ type Props = {
 
 const GRID: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: `repeat(auto-fill, minmax(${LAYOUT.cardMinWidth}px, 1fr))`,
+  // Fixed tracks: widening the window adds a column instead of stretching
+  // every cover. Any width that cannot hold another card stays on the right.
+  gridTemplateColumns: `repeat(auto-fill, ${LAYOUT.cardWidth}px)`,
+  justifyContent: "start",
   columnGap: LAYOUT.gridGapX,
   rowGap: LAYOUT.gridGapY,
 };
@@ -209,7 +212,7 @@ export function BookGrid({
 
   return (
     <div
-      className="mx-auto w-full max-w-[1500px] pb-10 pt-6"
+      className="mx-auto w-full pb-10 pt-6"
       style={{ paddingLeft: LAYOUT.gridPadX, paddingRight: LAYOUT.gridPadX }}
     >
       {pending.length > 0 && (

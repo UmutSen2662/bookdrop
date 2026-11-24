@@ -9,6 +9,7 @@ import { dirname } from "../pipeline/paths";
 import { type Book, READ_STATUSES, type ReadStatus } from "../pipeline/types";
 import { BookCover } from "./BookCover";
 import { Button } from "./ui/button";
+import { ScrollArea } from "./ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -213,257 +214,267 @@ export function BookPanel({
   const outside = !book.missing && isOutsideLibrary(book, libraryDir);
 
   return (
-    <div className="h-full select-text overflow-y-auto p-5 pr-3">
-      <div className="mx-auto w-full">
-        <button
-          type="button"
-          onClick={() => onOpenCover(book)}
-          aria-label="View cover full size"
-          className="group relative block aspect-[2/3] w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          <BookCover
-            bookId={book.id}
-            title={book.title}
-            homeDir={homeDir}
-            updatedAt={book.updatedAt}
-            alt={book.title}
-          />
-          <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/25">
-            <ZoomIn
-              className="size-6 text-white opacity-0 transition group-hover:opacity-100"
-              aria-hidden
+    <ScrollArea className="h-full select-text">
+      <div className="p-5">
+        <div className="mx-auto w-full">
+          <button
+            type="button"
+            onClick={() => onOpenCover(book)}
+            aria-label="View cover full size"
+            className="group relative block aspect-[2/3] w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <BookCover
+              bookId={book.id}
+              title={book.title}
+              homeDir={homeDir}
+              updatedAt={book.updatedAt}
+              alt={book.title}
             />
-          </span>
-        </button>
-      </div>
-
-      <h2 className="mt-4 break-words text-xl font-semibold leading-snug">
-        {book.title || "Untitled"}
-      </h2>
-      <p className="mt-1 break-words text-sm text-muted-foreground">
-        {book.authors || "Unknown author"}
-      </p>
-
-      {book.missing && (
-        <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          <p className="font-semibold">File missing</p>
-          <p
-            className="mt-1 break-all text-[11px] text-destructive/80"
-            title={book.libraryPath ?? ""}
-          >
-            {book.libraryPath}
-          </p>
-          <p className="mt-1 text-[11px] text-destructive/80">
-            Put the file back at this path, then Recheck. Opening the folder is
-            a good place to start looking.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => onOpenFolder(book)}
-            >
-              Open folder
-            </Button>
-            <Button size="xs" variant="outline" onClick={() => onRecheck(book)}>
-              Recheck
-            </Button>
-          </div>
+            <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/25">
+              <ZoomIn
+                className="size-6 text-white opacity-0 transition group-hover:opacity-100"
+                aria-hidden
+              />
+            </span>
+          </button>
         </div>
-      )}
 
-      {outside && (
-        <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
-          <p className="font-semibold">Outside library folder</p>
-          <p
-            className="mt-1 break-all text-[11px] text-amber-800/80 dark:text-amber-200/80"
-            title={book.libraryPath ?? ""}
-          >
-            {dirname(book.libraryPath ?? "")}
-          </p>
-          <p className="mt-1 text-[11px] text-amber-800/80 dark:text-amber-200/80">
-            This book is still in another folder. Move it into the current
-            library folder, or switch back in Settings.
-          </p>
-          <div className="mt-2">
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => onOpenFolder(book)}
-            >
-              Open folder
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {book.status === "needs_review" && (
-        <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
-          Needs review
-          {book.flagReason ? ` · ${reasonLabel(book.flagReason)}` : ""}. Edit
-          the fields or remove the book.
+        <h2 className="mt-4 break-words text-xl font-semibold leading-snug">
+          {book.title || "Untitled"}
+        </h2>
+        <p className="mt-1 break-words text-sm text-muted-foreground">
+          {book.authors || "Unknown author"}
         </p>
-      )}
 
-      <div className="mt-4 flex items-center gap-2">
-        <Button
-          size="sm"
-          onClick={() => onOpen(book)}
-          disabled={!book.libraryPath || book.missing}
-          title={book.missing ? "The library file is missing" : undefined}
-        >
-          <BookOpen aria-hidden />
-          Open
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => onEdit(book)}>
-          <Pencil aria-hidden />
-          Edit
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-          onClick={() => onRemove(book)}
-        >
-          <Trash2 aria-hidden />
-          Remove
-        </Button>
-        <div className="ml-auto shrink-0">
-          <Select
-            items={READ_STATUSES.map((value) => ({
-              value,
-              label: READ_STATUS_LABELS[value],
-            }))}
-            value={status}
-            onValueChange={(value) => {
-              if (!value) return;
-              const next = value as ReadStatus;
-              requestedStatusRef.current = next;
-              setStatus(next);
-              saveNow(next, notesRef.current);
-            }}
-          >
-            <SelectTrigger
-              size="sm"
-              aria-label="Reading status"
-              title="Reading status"
+        {book.missing && (
+          <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <p className="font-semibold">File missing</p>
+            <p
+              className="mt-1 break-all text-[11px] text-destructive/80"
+              title={book.libraryPath ?? ""}
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {READ_STATUSES.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {READ_STATUS_LABELS[value]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+              {book.libraryPath}
+            </p>
+            <p className="mt-1 text-[11px] text-destructive/80">
+              Put the file back at this path, then Recheck. Opening the folder
+              is a good place to start looking.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                size="xs"
+                variant="outline"
+                onClick={() => onOpenFolder(book)}
+              >
+                Open folder
+              </Button>
+              <Button
+                size="xs"
+                variant="outline"
+                onClick={() => onRecheck(book)}
+              >
+                Recheck
+              </Button>
+            </div>
+          </div>
+        )}
 
-      <div className="mt-3">
-        <div className="flex items-baseline justify-between gap-3">
-          <label
-            htmlFor={`book-notes-${book.id}`}
-            className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
-          >
-            Notes
-          </label>
-          <span className="text-[11px] text-muted-foreground">
-            Private; not written to the EPUB.
-          </span>
-        </div>
-        <textarea
-          id={`book-notes-${book.id}`}
-          value={notes}
-          onChange={(event) => {
-            const value = event.target.value;
-            setNotes(value);
-            writeDraft(draftKeyRef.current, value);
-          }}
-          onBlur={() => {
-            if (notesRef.current === lastQueuedNotesRef.current) return;
-            saveNow(statusRef.current, notesRef.current);
-          }}
-          rows={4}
-          placeholder="Quotes, thoughts, where you left off…"
-          className="mt-2 w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        />
-        {error && (
-          <p
-            className="mt-1 text-[11px] text-destructive"
-            title={error}
-            role="alert"
-          >
-            Could not save reading state.{" "}
-            <button
-              type="button"
-              className="underline underline-offset-2 hover:text-foreground"
-              onClick={() => saveNow(statusRef.current, notesRef.current)}
+        {outside && (
+          <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+            <p className="font-semibold">Outside library folder</p>
+            <p
+              className="mt-1 break-all text-[11px] text-amber-800/80 dark:text-amber-200/80"
+              title={book.libraryPath ?? ""}
             >
-              Retry
-            </button>
+              {dirname(book.libraryPath ?? "")}
+            </p>
+            <p className="mt-1 text-[11px] text-amber-800/80 dark:text-amber-200/80">
+              This book is still in another folder. Move it into the current
+              library folder, or switch back in Settings.
+            </p>
+            <div className="mt-2">
+              <Button
+                size="xs"
+                variant="outline"
+                onClick={() => onOpenFolder(book)}
+              >
+                Open folder
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {book.status === "needs_review" && (
+          <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+            Needs review
+            {book.flagReason ? ` · ${reasonLabel(book.flagReason)}` : ""}. Edit
+            the fields or remove the book.
           </p>
         )}
-      </div>
 
-      <div className="mt-4">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          Description
-        </h3>
-        {description ? (
-          <div
-            className="mt-2 space-y-2 break-words text-sm leading-relaxed text-foreground [&_a]:text-foreground [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_em]:italic [&_ol]:list-decimal [&_ol]:pl-5 [&_p:first-child]:mt-0 [&_p]:mt-2 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5"
-            dangerouslySetInnerHTML={{ __html: description }}
-          />
-        ) : (
-          <p className="mt-2 text-sm text-muted-foreground">No description.</p>
-        )}
-      </div>
-
-      {tags.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Tags
-          </h3>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="max-w-full truncate rounded-full border bg-muted/50 px-2 py-0.5 text-[11px]"
-                title={tag}
+        <div className="mt-4 flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => onOpen(book)}
+            disabled={!book.libraryPath || book.missing}
+            title={book.missing ? "The library file is missing" : undefined}
+          >
+            <BookOpen aria-hidden />
+            Open
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => onEdit(book)}>
+            <Pencil aria-hidden />
+            Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onRemove(book)}
+          >
+            <Trash2 aria-hidden />
+            Remove
+          </Button>
+          <div className="ml-auto shrink-0">
+            <Select
+              items={READ_STATUSES.map((value) => ({
+                value,
+                label: READ_STATUS_LABELS[value],
+              }))}
+              value={status}
+              onValueChange={(value) => {
+                if (!value) return;
+                const next = value as ReadStatus;
+                requestedStatusRef.current = next;
+                setStatus(next);
+                saveNow(next, notesRef.current);
+              }}
+            >
+              <SelectTrigger
+                size="sm"
+                aria-label="Reading status"
+                title="Reading status"
               >
-                {tag}
-              </span>
-            ))}
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {READ_STATUSES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {READ_STATUS_LABELS[value]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-      )}
 
-      <dl className="mt-4 space-y-2 text-sm">
-        {series && <Detail label="Series" value={series} />}
-        <Detail label="ISBN" value={book.isbn} />
-        <Detail label="Publisher" value={book.publisher} />
-        <Detail label="Published" value={book.published} />
-        <Detail label="Language" value={book.language} />
-      </dl>
-
-      {(book.error || book.notes) && (
-        <details className="mt-4 border-t pt-3 text-xs text-muted-foreground">
-          <summary className="cursor-pointer select-none font-medium">
-            Import details
-          </summary>
-          {book.error && (
-            <p className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap break-words text-destructive/90">
-              {book.error}
+        <div className="mt-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <label
+              htmlFor={`book-notes-${book.id}`}
+              className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+            >
+              Notes
+            </label>
+            <span className="text-[11px] text-muted-foreground">
+              Private; not written to the EPUB.
+            </span>
+          </div>
+          <textarea
+            id={`book-notes-${book.id}`}
+            value={notes}
+            onChange={(event) => {
+              const value = event.target.value;
+              setNotes(value);
+              writeDraft(draftKeyRef.current, value);
+            }}
+            onBlur={() => {
+              if (notesRef.current === lastQueuedNotesRef.current) return;
+              saveNow(statusRef.current, notesRef.current);
+            }}
+            rows={4}
+            placeholder="Quotes, thoughts, where you left off…"
+            className="mt-2 w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          />
+          {error && (
+            <p
+              className="mt-1 text-[11px] text-destructive"
+              title={error}
+              role="alert"
+            >
+              Could not save reading state.{" "}
+              <button
+                type="button"
+                className="underline underline-offset-2 hover:text-foreground"
+                onClick={() => saveNow(statusRef.current, notesRef.current)}
+              >
+                Retry
+              </button>
             </p>
           )}
-          {book.notes && (
-            <p className="mt-2 whitespace-pre-wrap break-words">{book.notes}</p>
+        </div>
+
+        <div className="mt-4">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Description
+          </h3>
+          {description ? (
+            <div
+              className="mt-2 space-y-2 break-words text-sm leading-relaxed text-foreground [&_a]:text-foreground [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_em]:italic [&_ol]:list-decimal [&_ol]:pl-5 [&_p:first-child]:mt-0 [&_p]:mt-2 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">
+              No description.
+            </p>
           )}
-        </details>
-      )}
-    </div>
+        </div>
+
+        {tags.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Tags
+            </h3>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="max-w-full truncate rounded-full border bg-muted/50 px-2 py-0.5 text-[11px]"
+                  title={tag}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <dl className="mt-4 space-y-2 text-sm">
+          {series && <Detail label="Series" value={series} />}
+          <Detail label="ISBN" value={book.isbn} />
+          <Detail label="Publisher" value={book.publisher} />
+          <Detail label="Published" value={book.published} />
+          <Detail label="Language" value={book.language} />
+        </dl>
+
+        {(book.error || book.notes) && (
+          <details className="mt-4 border-t pt-3 text-xs text-muted-foreground">
+            <summary className="cursor-pointer select-none font-medium">
+              Import details
+            </summary>
+            {book.error && (
+              <p className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap break-words text-destructive/90">
+                {book.error}
+              </p>
+            )}
+            {book.notes && (
+              <p className="mt-2 whitespace-pre-wrap break-words">
+                {book.notes}
+              </p>
+            )}
+          </details>
+        )}
+      </div>
+    </ScrollArea>
   );
 }
 

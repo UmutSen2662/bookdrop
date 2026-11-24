@@ -14,6 +14,7 @@ import { SettingsDialog } from "./components/SettingsDialog";
 import { Toasts } from "./components/Toasts";
 import { TopBar } from "./components/TopBar";
 import { Button } from "./components/ui/button";
+import { ScrollArea } from "./components/ui/scroll-area";
 import { LAYOUT, WIDE_BREAKPOINT } from "./lib/layout";
 import { CALIBRE_DOWNLOAD_URL } from "./lib/links";
 import { isOutsideLibrary, normalizedFolder } from "./lib/outside";
@@ -491,198 +492,211 @@ function App() {
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar
-          query={query}
-          onQueryChange={setQuery}
-          searchRef={searchRef}
-          sortBy={sortBy}
-          onSortChange={(value) => {
-            void library.saveSettings({ sortBy: value }).catch(() => undefined);
-          }}
-          needsReviewOnly={needsReviewOnly}
-          needsReviewCount={needsReviewCount}
-          onToggleNeedsReview={() => setNeedsReviewOnly((current) => !current)}
-          missingCoverOnly={missingCoverOnly}
-          missingCoverCount={missingCoverCount}
-          onToggleMissingCover={() =>
-            setMissingCoverOnly((current) => !current)
-          }
-          flagged={flagged}
-          missing={missing}
-          attentionOpen={attentionOpen}
-          onAttentionOpenChange={setAttentionOpen}
-          onShow={(book) => {
-            setAttentionOpen(false);
-            library.showBook(book);
-          }}
-          onRetry={(book) => {
-            setAttentionOpen(false);
-            void library.retryFlagged(book);
-          }}
-          onDismiss={(book) => void library.dismiss(book)}
-          onOpenSettings={() => {
-            setAttentionOpen(false);
-            setSettingsOpen(true);
-          }}
-          queue={library.queue}
-        />
+      <div
+        className="mx-auto flex h-full w-full min-w-0"
+        style={{ maxWidth: LAYOUT.appMaxWidth }}
+      >
+        <div className="flex min-w-0 flex-1 flex-col">
+          <TopBar
+            query={query}
+            onQueryChange={setQuery}
+            searchRef={searchRef}
+            sortBy={sortBy}
+            onSortChange={(value) => {
+              void library
+                .saveSettings({ sortBy: value })
+                .catch(() => undefined);
+            }}
+            needsReviewOnly={needsReviewOnly}
+            needsReviewCount={needsReviewCount}
+            onToggleNeedsReview={() =>
+              setNeedsReviewOnly((current) => !current)
+            }
+            missingCoverOnly={missingCoverOnly}
+            missingCoverCount={missingCoverCount}
+            onToggleMissingCover={() =>
+              setMissingCoverOnly((current) => !current)
+            }
+            flagged={flagged}
+            missing={missing}
+            attentionOpen={attentionOpen}
+            onAttentionOpenChange={setAttentionOpen}
+            onShow={(book) => {
+              setAttentionOpen(false);
+              library.showBook(book);
+            }}
+            onRetry={(book) => {
+              setAttentionOpen(false);
+              void library.retryFlagged(book);
+            }}
+            onDismiss={(book) => void library.dismiss(book)}
+            onOpenSettings={() => {
+              setAttentionOpen(false);
+              setSettingsOpen(true);
+            }}
+            queue={library.queue}
+          />
 
-        {!library.install && (
-          <div className="border-b bg-amber-500/10 px-4 py-2">
-            <div className="mx-auto flex w-full max-w-[1500px] items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
-              <span className="min-w-0 flex-1">
-                calibre was not found. Dropping is disabled until it is on PATH
-                or configured.
-              </span>
-              <Button
-                size="xs"
-                variant="outline"
-                onClick={() => void library.recheckCalibre()}
-              >
-                <RefreshCw aria-hidden />
-                Re-check
-              </Button>
-              <Button
-                size="xs"
-                variant="link"
-                onClick={() => {
-                  void openUrl(CALIBRE_DOWNLOAD_URL).catch(() => undefined);
-                }}
-              >
-                Download calibre
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {outsideBooks.length > 0 && outsideDismissedFor !== libraryDir && (
-          <div className="border-b bg-amber-500/10 px-4 py-2">
-            <div className="mx-auto flex w-full max-w-[1500px] flex-wrap items-start gap-x-3 gap-y-2 text-xs text-amber-800 dark:text-amber-200">
-              <div className="min-w-0 flex-1">
-                <p className="font-medium">
-                  {outsideBooks.length} book
-                  {outsideBooks.length === 1 ? " is" : "s are"} outside the
-                  current library folder.
-                </p>
-                <p className="mt-0.5 text-amber-800/80 dark:text-amber-200/80">
-                  {outsideFolder ? (
-                    <>
-                      They are still in{" "}
-                      <span className="break-all font-mono">
-                        {outsideFolder}
-                      </span>
-                      .{" "}
-                    </>
-                  ) : (
-                    "They are still in other folders. "
-                  )}
-                  Move the files into the current library folder (don't copy)
-                  and Bookdrop re-attaches them on the next start.
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {outsideFolder && (
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    onClick={() => {
-                      const first = outsideBooks[0];
-                      if (first) void library.openBookFolder(first);
-                    }}
-                  >
-                    Open old folder
-                  </Button>
-                )}
+          {!library.install && (
+            <div className="border-b bg-amber-500/10 px-4 py-2">
+              <div className="flex w-full items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
+                <span className="min-w-0 flex-1">
+                  calibre was not found. Dropping is disabled until it is on
+                  PATH or configured.
+                </span>
                 <Button
                   size="xs"
                   variant="outline"
-                  onClick={() => setSettingsOpen(true)}
+                  onClick={() => void library.recheckCalibre()}
                 >
-                  Settings
+                  <RefreshCw aria-hidden />
+                  Re-check
                 </Button>
                 <Button
-                  size="icon-xs"
-                  variant="ghost"
-                  aria-label="Dismiss this notice"
-                  onClick={() => setOutsideDismissedFor(libraryDir)}
+                  size="xs"
+                  variant="link"
+                  onClick={() => {
+                    void openUrl(CALIBRE_DOWNLOAD_URL).catch(() => undefined);
+                  }}
                 >
-                  <X aria-hidden />
+                  Download calibre
                 </Button>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <main
-          className="flex min-h-0 flex-1 flex-col overflow-y-auto"
-          onClick={(event) => {
-            const target = event.target as HTMLElement;
-            if (
-              target.closest("[data-book-id], [data-pending]") ||
-              target.closest("button, a, input, textarea, select")
-            ) {
-              return;
+          {outsideBooks.length > 0 && outsideDismissedFor !== libraryDir && (
+            <div className="border-b bg-amber-500/10 px-4 py-2">
+              <div className="flex w-full flex-wrap items-start gap-x-3 gap-y-2 text-xs text-amber-800 dark:text-amber-200">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">
+                    {outsideBooks.length} book
+                    {outsideBooks.length === 1 ? " is" : "s are"} outside the
+                    current library folder.
+                  </p>
+                  <p className="mt-0.5 text-amber-800/80 dark:text-amber-200/80">
+                    {outsideFolder ? (
+                      <>
+                        They are still in{" "}
+                        <span className="break-all font-mono">
+                          {outsideFolder}
+                        </span>
+                        .{" "}
+                      </>
+                    ) : (
+                      "They are still in other folders. "
+                    )}
+                    Move the files into the current library folder (don't copy)
+                    and Bookdrop re-attaches them on the next start.
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {outsideFolder && (
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      onClick={() => {
+                        const first = outsideBooks[0];
+                        if (first) void library.openBookFolder(first);
+                      }}
+                    >
+                      Open old folder
+                    </Button>
+                  )}
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={() => setSettingsOpen(true)}
+                  >
+                    Settings
+                  </Button>
+                  <Button
+                    size="icon-xs"
+                    variant="ghost"
+                    aria-label="Dismiss this notice"
+                    onClick={() => setOutsideDismissedFor(libraryDir)}
+                  >
+                    <X aria-hidden />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <main className="flex min-h-0 flex-1 flex-col">
+            <ScrollArea className="min-h-0 flex-1">
+              <div
+                className="flex min-h-full flex-col"
+                onClick={(event) => {
+                  const target = event.target as HTMLElement;
+                  if (
+                    target.closest("[data-book-id], [data-pending]") ||
+                    target.closest("button, a, input, textarea, select")
+                  ) {
+                    return;
+                  }
+                  if (library.selectedId !== null) library.setSelectedId(null);
+                }}
+              >
+                <BookGrid
+                  books={filtered}
+                  pending={library.pending}
+                  selectedId={library.selectedId}
+                  homeDir={config.homeDir}
+                  libraryDir={libraryDir}
+                  hasQuery={debounced.trim().length > 0}
+                  hasFilter={needsReviewOnly || missingCoverOnly}
+                  scrollRequest={library.scrollRequest}
+                  onSelect={(book) => library.setSelectedId(book.id)}
+                  onTogglePin={(book) => void library.togglePin(book)}
+                  onOpen={(book) => void library.openBook(book)}
+                  onReorderPinned={(ids) => library.reorderPinned(ids)}
+                  onClearSearch={() => {
+                    setQuery("");
+                    searchRef.current?.focus();
+                  }}
+                  onClearFilters={() => {
+                    setQuery("");
+                    setNeedsReviewOnly(false);
+                    setMissingCoverOnly(false);
+                    searchRef.current?.focus();
+                  }}
+                />
+              </div>
+            </ScrollArea>
+          </main>
+
+          <Footer
+            notices={startupNotices}
+            share={share.supported ? share : null}
+            onUpdateError={(title, detail) =>
+              library.pushToast({ title, detail, tone: "error" })
             }
-            if (library.selectedId !== null) library.setSelectedId(null);
-          }}
-        >
-          <BookGrid
-            books={filtered}
-            pending={library.pending}
-            selectedId={library.selectedId}
-            homeDir={config.homeDir}
-            libraryDir={libraryDir}
-            hasQuery={debounced.trim().length > 0}
-            hasFilter={needsReviewOnly || missingCoverOnly}
-            scrollRequest={library.scrollRequest}
-            onSelect={(book) => library.setSelectedId(book.id)}
-            onTogglePin={(book) => void library.togglePin(book)}
-            onOpen={(book) => void library.openBook(book)}
-            onReorderPinned={(ids) => library.reorderPinned(ids)}
-            onClearSearch={() => {
-              setQuery("");
-              searchRef.current?.focus();
-            }}
-            onClearFilters={() => {
-              setQuery("");
-              setNeedsReviewOnly(false);
-              setMissingCoverOnly(false);
-              searchRef.current?.focus();
-            }}
           />
-        </main>
+        </div>
 
-        <Footer
-          notices={startupNotices}
-          share={share.supported ? share : null}
-          onUpdateError={(title, detail) =>
-            library.pushToast({ title, detail, tone: "error" })
-          }
-        />
+        {wide && (
+          <aside
+            className="h-full shrink-0 border-l bg-background"
+            style={{ width: LAYOUT.panelWidth }}
+          >
+            <BookPanel
+              key={selectedBook?.id ?? "empty"}
+              book={selectedBook}
+              homeDir={config.homeDir}
+              libraryDir={libraryDir}
+              seriesTotal={selectedSeriesTotal}
+              onEdit={() => setEditing(true)}
+              onRemove={(book) => setRemovingBook(book)}
+              onOpenCover={(book) => setCoverViewBook(book)}
+              onOpen={(book) => void library.openBook(book)}
+              onOpenFolder={(book) => void library.openBookFolder(book)}
+              onRecheck={(book) => void library.recheckBook(book)}
+              onSaveReading={library.saveBookReading}
+            />
+          </aside>
+        )}
       </div>
-
-      {wide && (
-        <aside
-          className="h-full shrink-0 border-l bg-background"
-          style={{ width: LAYOUT.panelWidth }}
-        >
-          <BookPanel
-            key={selectedBook?.id ?? "empty"}
-            book={selectedBook}
-            homeDir={config.homeDir}
-            libraryDir={libraryDir}
-            seriesTotal={selectedSeriesTotal}
-            onEdit={() => setEditing(true)}
-            onRemove={(book) => setRemovingBook(book)}
-            onOpenCover={(book) => setCoverViewBook(book)}
-            onOpen={(book) => void library.openBook(book)}
-            onOpenFolder={(book) => void library.openBookFolder(book)}
-            onRecheck={(book) => void library.recheckBook(book)}
-            onSaveReading={library.saveBookReading}
-          />
-        </aside>
-      )}
 
       {!wide && selectedBook && (
         <div

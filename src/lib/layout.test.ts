@@ -2,13 +2,9 @@ import { describe, expect, it } from "vitest";
 import { LAYOUT, WIDE_BREAKPOINT } from "./layout";
 
 function columnsAt(windowWidth: number): number {
-  const inner =
-    windowWidth -
-    LAYOUT.panelWidth -
-    LAYOUT.gridPadX * 2 -
-    LAYOUT.scrollbarAllowance;
+  const inner = windowWidth - LAYOUT.panelWidth - LAYOUT.gridPadX * 2;
   return Math.floor(
-    (inner + LAYOUT.gridGapX) / (LAYOUT.cardMinWidth + LAYOUT.gridGapX),
+    (inner + LAYOUT.gridGapX) / (LAYOUT.cardWidth + LAYOUT.gridGapX),
   );
 }
 

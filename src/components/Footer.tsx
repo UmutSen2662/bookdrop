@@ -51,7 +51,7 @@ export function Footer({ notices, share, onUpdateError }: Props) {
 
   return (
     <footer className="shrink-0 border-t bg-background">
-      <div className="mx-auto flex h-9 w-full max-w-[1500px] items-center gap-4 px-4 text-xs text-muted-foreground">
+      <div className="flex h-9 w-full items-center gap-4 px-4 text-xs text-muted-foreground">
         {share && (
           <span aria-live="polite" className="flex items-center">
             <ShareButton

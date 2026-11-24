@@ -87,7 +87,7 @@ export function TopBar({
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-14 w-full max-w-[1500px] items-center gap-3 px-4">
+      <div className="flex h-14 w-full items-center gap-3 px-4">
         <div className="relative w-full min-w-0 max-w-md">
           <Search
             className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
