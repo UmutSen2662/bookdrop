@@ -109,17 +109,6 @@ export function SettingsDialog({
   onPlanRenames,
   onRenameLibrary,
 }: Props) {
-  const [libraryDir, setLibraryDir] = useState(config.libraryDir);
-  const [archiveOriginals, setArchiveOriginals] = useState(
-    config.archiveOriginals,
-  );
-  const [originalsDir, setOriginalsDir] = useState(config.originalsDir);
-  const [fetchMetadata, setFetchMetadata] = useState(config.fetchMetadata);
-  const [cleanConverted, setCleanConverted] = useState(config.cleanConverted);
-  const [fetchCovers, setFetchCovers] = useState(config.fetchCovers);
-  const [calibreDir, setCalibreDir] = useState<string | null>(
-    config.calibreDir,
-  );
   const [template, setTemplate] = useState(config.fileNameTemplate);
   const [plan, setPlan] = useState<RenamePlan | null>(null);
   const [planning, setPlanning] = useState(false);
@@ -128,29 +117,30 @@ export function SettingsDialog({
   const [archiveStats, setArchiveStats] = useState<
     FolderStats | null | undefined
   >(undefined);
-  const [saving, setSaving] = useState(false);
+  const [pendingLibrary, setPendingLibrary] = useState<string | null>(null);
+  const [changingLibrary, setChangingLibrary] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const version = useAppVersion();
   const templateInput = useRef<HTMLInputElement>(null);
   const templateRef = useRef(template);
   templateRef.current = template;
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
-  const libraryChanged = libraryDir !== config.libraryDir;
-  const archiveIssue = archiveOriginals
-    ? archiveProblem(libraryDir, originalsDir)
+  const archiveIssue = config.archiveOriginals
+    ? archiveProblem(config.libraryDir, config.originalsDir)
     : null;
-  const outsideCount = useMemo(() => {
-    const target = libraryDir.trim();
+  const pendingOutside = useMemo(() => {
+    if (!pendingLibrary) return 0;
+    const target = normalizedFolder(pendingLibrary);
     if (!target) return 0;
     return books.filter(
       (book) =>
         book.libraryPath &&
         !book.missing &&
-        normalizedFolder(dirname(book.libraryPath)) !==
-          normalizedFolder(target),
+        normalizedFolder(dirname(book.libraryPath)) !== target,
     ).length;
-  }, [books, libraryDir]);
+  }, [books, pendingLibrary]);
   const effectiveTemplate = template.trim() || DEFAULT_FILE_NAME_TEMPLATE;
   const templateIssues = template.trim() ? templateProblems(template) : [];
   const preview = useMemo(
@@ -161,7 +151,7 @@ export function SettingsDialog({
             book.libraryPath &&
             !book.missing &&
             normalizedFolder(dirname(book.libraryPath)) ===
-              normalizedFolder(libraryDir),
+              normalizedFolder(config.libraryDir),
         )
         .map((book) => ({
           book,
@@ -178,18 +168,18 @@ export function SettingsDialog({
           ({ path, next }) =>
             basename(path).toLowerCase() !== next.toLowerCase(),
         ),
-    [books, effectiveTemplate, libraryDir],
+    [books, effectiveTemplate, config.libraryDir],
   );
 
   useEffect(() => {
-    if (!originalsDir) {
+    if (!config.originalsDir) {
       setArchiveStats(undefined);
       return;
     }
     setArchiveStats(undefined);
     let cancelled = false;
     const timer = window.setTimeout(() => {
-      void readFolderStats(host, originalsDir)
+      void readFolderStats(host, config.originalsDir)
         .then((stats) => {
           if (!cancelled) setArchiveStats(stats);
         })
@@ -201,7 +191,7 @@ export function SettingsDialog({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [host, originalsDir]);
+  }, [host, config.originalsDir]);
 
   function resetPlan() {
     setPlan(null);
@@ -213,19 +203,112 @@ export function SettingsDialog({
     return typeof selected === "string" ? selected : null;
   }
 
+  /** Queue writes so two quick changes cannot overwrite each other. */
+  function apply(patch: Partial<Config>): Promise<boolean> {
+    setError(null);
+    const run = saveQueue.current.then(() => onSave(patch));
+    saveQueue.current = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run.then(
+      () => true,
+      (saveError) => {
+        setError(errorMessage(saveError));
+        return false;
+      },
+    );
+  }
+
   async function pickLibrary() {
     const selected = await pickFolder("Choose the library folder");
-    if (selected) setLibraryDir(selected);
+    if (!selected || selected === config.libraryDir) return;
+    if (config.archiveOriginals) {
+      const issue = archiveProblem(selected, config.originalsDir);
+      if (issue) {
+        setError(issue);
+        return;
+      }
+    }
+    setError(null);
+    setPendingLibrary(selected);
+  }
+
+  async function confirmLibrary() {
+    if (!pendingLibrary || changingLibrary) return;
+    setChangingLibrary(true);
+    const applied = await apply({ libraryDir: pendingLibrary });
+    setChangingLibrary(false);
+    if (applied) {
+      resetPlan();
+      setPendingLibrary(null);
+    }
   }
 
   async function pickArchive() {
     const selected = await pickFolder("Choose the archive folder");
-    if (selected) setOriginalsDir(selected);
+    if (!selected || selected === config.originalsDir) return;
+    const issue = archiveProblem(config.libraryDir, selected);
+    if (issue) {
+      setError(issue);
+      return;
+    }
+    await apply({ originalsDir: selected });
   }
 
   async function pickCalibre() {
     const selected = await pickFolder("Choose the calibre folder");
-    if (selected) setCalibreDir(selected);
+    if (!selected || selected === config.calibreDir) return;
+    await apply({ calibreDir: selected });
+  }
+
+  function toggleArchive(value: boolean) {
+    void applyArchive(value);
+  }
+
+  async function applyArchive(value: boolean) {
+    if (!value) {
+      await apply({ archiveOriginals: false });
+      return;
+    }
+    if (!config.originalsDir) {
+      const selected = await pickFolder("Choose the archive folder");
+      if (!selected) return;
+      const issue = archiveProblem(config.libraryDir, selected);
+      if (issue) {
+        setError(issue);
+        return;
+      }
+      await apply({ originalsDir: selected, archiveOriginals: true });
+      return;
+    }
+    const issue = archiveProblem(config.libraryDir, config.originalsDir);
+    if (issue) {
+      setError(issue);
+      return;
+    }
+    await apply({ archiveOriginals: true });
+  }
+
+  async function commitTemplate() {
+    const next = effectiveTemplate;
+    if (next === config.fileNameTemplate || templateIssues.length > 0) return;
+    const applied = await apply({ fileNameTemplate: next });
+    // The user may have kept typing while the write was in flight.
+    if (templateRef.current !== template) return;
+    setTemplate(applied ? next : config.fileNameTemplate);
+  }
+
+  async function resetTemplate() {
+    if (template === DEFAULT_FILE_NAME_TEMPLATE) return;
+    setTemplate(DEFAULT_FILE_NAME_TEMPLATE);
+    resetPlan();
+    const applied = await apply({
+      fileNameTemplate: DEFAULT_FILE_NAME_TEMPLATE,
+    });
+    if (!applied && templateRef.current === DEFAULT_FILE_NAME_TEMPLATE) {
+      setTemplate(config.fileNameTemplate);
+    }
   }
 
   async function exportNotes() {
@@ -314,7 +397,9 @@ export function SettingsDialog({
     setRenaming(true);
     setError(null);
     try {
-      await onSave({ fileNameTemplate: effectiveTemplate });
+      const saved = await apply({ fileNameTemplate: effectiveTemplate });
+      if (!saved) return;
+      setTemplate(effectiveTemplate);
       setRenameReport(await onRenameLibrary(plan));
       setPlan(null);
     } catch (renameError) {
@@ -324,45 +409,11 @@ export function SettingsDialog({
     }
   }
 
-  async function save() {
-    if (!libraryDir.trim()) {
-      setError("Choose a library folder first.");
-      return;
-    }
-    if (archiveIssue) {
-      setError(archiveIssue);
-      return;
-    }
-    if (templateIssues.length > 0) {
-      setError(templateIssues.join(" "));
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      await onSave({
-        libraryDir,
-        archiveOriginals,
-        originalsDir,
-        fetchMetadata,
-        cleanConverted,
-        fetchCovers,
-        calibreDir,
-        fileNameTemplate: effectiveTemplate,
-      });
-      onClose();
-    } catch (saveError) {
-      setError(errorMessage(saveError));
-    } finally {
-      setSaving(false);
-    }
-  }
-
   return (
     <Dialog
       open
       onOpenChange={(open) => {
-        if (!open && !saving) onClose();
+        if (!open) onClose();
       }}
     >
       <DialogContent
@@ -377,22 +428,34 @@ export function SettingsDialog({
             size="icon"
             aria-label="Close"
             onClick={onClose}
-            disabled={saving}
           >
             <X aria-hidden />
           </Button>
         </div>
 
+        {error && (
+          <div className="border-b px-5 py-2">
+            <Callout
+              role="alert"
+              className="max-h-24 overflow-y-auto whitespace-pre-wrap"
+            >
+              {error}
+            </Callout>
+          </div>
+        )}
+
         <div className="min-h-0 flex-1 overflow-y-auto p-5">
-          <section>
-            <h3 className={SECTION_LABEL}>Library folder</h3>
+          <BandHeading first title="Library" />
+          <section className="mt-5">
+            <h3 className={SECTION_LABEL}>Folder</h3>
             <div className="mt-2 flex gap-2">
               <Input
-                value={libraryDir}
-                onChange={(event) => setLibraryDir(event.target.value)}
+                value={config.libraryDir}
+                readOnly
                 placeholder="Choose a folder…"
                 aria-label="Library folder"
                 spellCheck={false}
+                className="cursor-default bg-muted/20"
               />
               <Button variant="outline" size="sm" onClick={pickLibrary}>
                 <FolderOpen aria-hidden />
@@ -401,47 +464,64 @@ export function SettingsDialog({
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={!libraryDir}
-                onClick={() => void openFolder(libraryDir)}
+                disabled={!config.libraryDir}
+                onClick={() => void openFolder(config.libraryDir)}
               >
                 Open
               </Button>
             </div>
-            {libraryChanged && (
+            {pendingLibrary ? (
               <Callout tone="warning" className="mt-2">
-                New drops go to this folder.{" "}
-                {outsideCount > 0 ? (
-                  <>
-                    {outsideCount} book{outsideCount === 1 ? "" : "s"} already
-                    filed elsewhere will be marked{" "}
-                    <strong>outside library</strong> until you move them. Move
-                    the files into the new folder: Bookdrop re-attaches them by
-                    file hash on the next start. Copying instead of moving
-                    creates duplicates.
-                  </>
-                ) : (
-                  "Nothing already filed needs to move."
-                )}
+                <p className="text-xs font-medium break-all">
+                  Use {pendingLibrary} as the library folder?
+                </p>
+                <p className="mt-1">
+                  {pendingOutside > 0 ? (
+                    <>
+                      {pendingOutside} book
+                      {pendingOutside === 1 ? "" : "s"} already filed elsewhere
+                      will be marked <strong>outside library</strong> until you
+                      move them. Move the files into the new folder: Bookdrop
+                      re-attaches them by file hash on the next start. Copying
+                      instead of moving creates duplicates.
+                    </>
+                  ) : (
+                    "Nothing already filed needs to move."
+                  )}
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    size="sm"
+                    disabled={changingLibrary}
+                    onClick={() => void confirmLibrary()}
+                  >
+                    {changingLibrary ? "Changing…" : "Change folder"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={changingLibrary}
+                    onClick={() => setPendingLibrary(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </Callout>
-            )}
-            {!libraryChanged && (
+            ) : (
               <p className="mt-1 text-[11px] text-muted-foreground">
                 New drops go here; books already filed stay where they were.
               </p>
             )}
           </section>
 
-          <section className="mt-6">
+          <section className="mt-5">
             <div className="flex items-center justify-between gap-2">
               <h3 className={SECTION_LABEL}>File names</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 disabled={template === DEFAULT_FILE_NAME_TEMPLATE}
-                onClick={() => {
-                  setTemplate(DEFAULT_FILE_NAME_TEMPLATE);
-                  resetPlan();
-                }}
+                onClick={() => void resetTemplate()}
               >
                 Reset
               </Button>
@@ -453,6 +533,16 @@ export function SettingsDialog({
                 setTemplate(event.target.value);
                 // A plan names files for the template it was built from.
                 resetPlan();
+              }}
+              onBlur={() => void commitTemplate()}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setTemplate(config.fileNameTemplate);
+                  resetPlan();
+                }
               }}
               placeholder={DEFAULT_FILE_NAME_TEMPLATE}
               aria-label="Filename template"
@@ -571,21 +661,13 @@ export function SettingsDialog({
                   variant="outline"
                   size="sm"
                   disabled={
-                    planning ||
-                    templateIssues.length > 0 ||
-                    !libraryDir ||
-                    libraryChanged
+                    planning || templateIssues.length > 0 || !config.libraryDir
                   }
                   onClick={() => void startRename()}
                 >
                   <RefreshCw aria-hidden />
                   {planning ? "Checking…" : "Rename library…"}
                 </Button>
-                {libraryChanged && (
-                  <p className="text-[11px] text-muted-foreground">
-                    Save the new library folder first.
-                  </p>
-                )}
                 {renameReport && (
                   <p className="text-[11px] text-muted-foreground">
                     Renamed {renameReport.renamed} file
@@ -606,63 +688,29 @@ export function SettingsDialog({
             )}
           </section>
 
-          <section className="mt-6">
-            <h3 className={SECTION_LABEL}>Ingest</h3>
+          <BandHeading title="Importing" />
+          <section className="mt-5">
+            <h3 className={SECTION_LABEL}>Processing</h3>
             <div className="mt-2 space-y-1">
               <ToggleRow
                 label="Fetch metadata online"
-                checked={fetchMetadata}
-                onChange={setFetchMetadata}
+                checked={config.fetchMetadata}
+                onChange={(value) => void apply({ fetchMetadata: value })}
               />
               <ToggleRow
                 label="Clean converted EPUBs"
-                checked={cleanConverted}
-                onChange={setCleanConverted}
+                checked={config.cleanConverted}
+                onChange={(value) => void apply({ cleanConverted: value })}
               />
               <ToggleRow
                 label="Fetch covers"
-                checked={fetchCovers}
-                onChange={setFetchCovers}
+                checked={config.fetchCovers}
+                onChange={(value) => void apply({ fetchCovers: value })}
               />
             </div>
           </section>
 
-          <section className="mt-6">
-            <h3 className={SECTION_LABEL}>Archive originals</h3>
-            <div className="mt-2">
-              <ToggleRow
-                label="Keep a copy of every dropped file"
-                checked={archiveOriginals}
-                onChange={setArchiveOriginals}
-              />
-              {archiveOriginals && (
-                <div className="mt-2 flex gap-2">
-                  <Input
-                    value={originalsDir}
-                    onChange={(event) => setOriginalsDir(event.target.value)}
-                    placeholder="Archive folder…"
-                    aria-label="Archive folder"
-                    spellCheck={false}
-                  />
-                  <Button variant="outline" size="sm" onClick={pickArchive}>
-                    <FolderOpen aria-hidden />
-                    Choose…
-                  </Button>
-                </div>
-              )}
-              <p
-                className="mt-1 text-xs text-muted-foreground"
-                title={originalsDir}
-              >
-                {archiveSummary(archiveStats, archiveOriginals)}
-              </p>
-              {archiveIssue && (
-                <p className="mt-2 text-xs text-destructive">{archiveIssue}</p>
-              )}
-            </div>
-          </section>
-
-          <section className="mt-6">
+          <section className="mt-5">
             <h3 className={SECTION_LABEL}>calibre</h3>
             <div className="mt-2 flex items-center gap-2">
               {install ? (
@@ -685,10 +733,10 @@ export function SettingsDialog({
             </div>
             <p
               className="mt-2 truncate text-[11px] text-muted-foreground"
-              title={calibreDir ?? undefined}
+              title={config.calibreDir ?? undefined}
             >
-              {calibreDir
-                ? `Override: ${calibreDir}`
+              {config.calibreDir
+                ? `Override: ${config.calibreDir}`
                 : "Detected automatically from PATH or the default install folder."}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -699,8 +747,8 @@ export function SettingsDialog({
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={!calibreDir}
-                onClick={() => setCalibreDir(null)}
+                disabled={!config.calibreDir}
+                onClick={() => void apply({ calibreDir: null })}
               >
                 Reset
               </Button>
@@ -715,32 +763,45 @@ export function SettingsDialog({
             </div>
           </section>
 
-          <section className="mt-6">
-            <h3 className={SECTION_LABEL}>Data folder</h3>
-            <div className="mt-2 flex items-center gap-2">
+          <BandHeading title="Data" />
+          <section className="mt-5">
+            <h3 className={SECTION_LABEL}>Archive originals</h3>
+            <div className="mt-2">
+              <ToggleRow
+                label="Keep a copy of every dropped file"
+                checked={config.archiveOriginals}
+                onChange={toggleArchive}
+              />
+              {config.archiveOriginals && (
+                <div className="mt-2 flex gap-2">
+                  <Input
+                    value={config.originalsDir}
+                    readOnly
+                    placeholder="Archive folder…"
+                    aria-label="Archive folder"
+                    spellCheck={false}
+                    className="cursor-default bg-muted/20"
+                  />
+                  <Button variant="outline" size="sm" onClick={pickArchive}>
+                    <FolderOpen aria-hidden />
+                    Choose…
+                  </Button>
+                </div>
+              )}
               <p
-                className="min-w-0 flex-1 truncate text-xs text-muted-foreground"
-                title={config.homeDir}
+                className="mt-1 text-xs text-muted-foreground"
+                title={config.originalsDir}
               >
-                {config.homeDir}
+                {archiveSummary(archiveStats, config.archiveOriginals)}
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void openFolder(config.homeDir)}
-              >
-                <FolderOpen aria-hidden />
-                Open
-              </Button>
+              {archiveIssue && (
+                <p className="mt-2 text-xs text-destructive">{archiveIssue}</p>
+              )}
             </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Reading status and notes live here. Close Bookdrop before copying
-              this folder as a backup.
-            </p>
           </section>
 
-          <section className="mt-6">
-            <h3 className={SECTION_LABEL}>Notes</h3>
+          <section className="mt-5">
+            <h3 className={SECTION_LABEL}>Backup</h3>
             <div className="mt-2 flex items-center gap-2">
               <p className="min-w-0 flex-1 text-xs text-muted-foreground">
                 {exportMessage ??
@@ -751,13 +812,13 @@ export function SettingsDialog({
                 size="sm"
                 onClick={() => void exportNotes()}
               >
-                Export
+                Export…
               </Button>
             </div>
           </section>
 
-          <section className="mt-6 border-t pt-4">
-            <h3 className={SECTION_LABEL}>About</h3>
+          <BandHeading title="About" />
+          <section className="mt-5">
             <p className="mt-1 text-sm font-medium">
               Bookdrop{version ? ` ${version}` : ""}
             </p>
@@ -775,26 +836,28 @@ export function SettingsDialog({
               MIT licensed. LICENSE.txt and THIRD-PARTY.md are installed with
               the app.
             </p>
+            <Button
+              variant="link"
+              size="sm"
+              className="mt-3 h-auto px-0 text-xs"
+              title={config.homeDir}
+              onClick={() => void openFolder(config.homeDir)}
+            >
+              <FolderOpen aria-hidden />
+              Open data folder
+            </Button>
           </section>
-        </div>
-
-        <div className="border-t px-5 py-3">
-          {error && (
-            <Callout className="mb-3 max-h-24 overflow-y-auto whitespace-pre-wrap">
-              {error}
-            </Callout>
-          )}
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={onClose} disabled={saving}>
-              Cancel
-            </Button>
-            <Button onClick={() => void save()} disabled={saving || renaming}>
-              {saving ? "Saving…" : "Save"}
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function BandHeading({ title, first }: { title: string; first?: boolean }) {
+  return (
+    <div className={first ? "" : "mt-9 border-t pt-6"}>
+      <h2 className="font-heading text-base font-semibold">{title}</h2>
+    </div>
   );
 }
 

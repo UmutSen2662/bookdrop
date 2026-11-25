@@ -193,7 +193,7 @@ Reading status, notes, and pins are only stored in the database, so back it up.
 Close Bookdrop, then copy the whole `%LOCALAPPDATA%\bookdrop` folder somewhere
 safe. EPUBs can be re-imported and covers can be regenerated, but the database
 cannot be rebuilt. To restore, close the app, put the folder back in place, and
-reopen Bookdrop. **Settings → Data folder** opens the location for you.
+reopen Bookdrop. **Settings → About** opens the location for you.
 
 ## Privacy
 
