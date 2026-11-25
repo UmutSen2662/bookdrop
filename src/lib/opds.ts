@@ -6,9 +6,9 @@
  * flattened here once, when the library changes.
  */
 
-import { basename, joinPath, stripExtension } from "../pipeline/paths";
-import type { Book } from "../pipeline/types";
-import { htmlToPlainText } from "./description";
+import { htmlToPlainText } from "@/lib/description";
+import { basename, joinPath, stripExtension } from "@/pipeline/paths";
+import type { Book } from "@/pipeline/types";
 
 /** Long blurbs bloat every feed page for no reading benefit on e-ink. */
 const MAX_DESCRIPTION = 800;

@@ -6,14 +6,15 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { type CalibreInstall, findCalibre } from "../pipeline/calibre";
-import { type Config, loadConfig, saveConfig } from "../pipeline/config";
-import type { BookStore } from "../pipeline/db";
-import { openTauriStore } from "../pipeline/db.tauri";
-import { errorMessage } from "../pipeline/errors";
-import type { Host } from "../pipeline/host";
-import { createTauriHost, primeEnv } from "../pipeline/host.tauri";
-import { ingestFile } from "../pipeline/ingest";
+import { reasonLabel } from "@/lib/format";
+import { type CalibreInstall, findCalibre } from "@/pipeline/calibre";
+import { type Config, loadConfig, saveConfig } from "@/pipeline/config";
+import type { BookStore } from "@/pipeline/db";
+import { openTauriStore } from "@/pipeline/db.tauri";
+import { errorMessage } from "@/pipeline/errors";
+import type { Host } from "@/pipeline/host";
+import { createTauriHost, primeEnv } from "@/pipeline/host.tauri";
+import { ingestFile } from "@/pipeline/ingest";
 import {
   applyLibraryRenames,
   checkBookFile,
@@ -28,15 +29,14 @@ import {
   removeBook,
   saveReading as saveReadingOnDisk,
   startup,
-} from "../pipeline/library";
+} from "@/pipeline/library";
 import {
   basename,
   dirname,
   joinPath,
   toForwardSlashes,
-} from "../pipeline/paths";
-import type { Book, Candidates, Metadata, ReadStatus } from "../pipeline/types";
-import { reasonLabel } from "./format";
+} from "@/pipeline/paths";
+import type { Book, Candidates, Metadata, ReadStatus } from "@/pipeline/types";
 
 type LibraryPhase = "loading" | "first-run" | "ready" | "error";
 
@@ -66,7 +66,6 @@ export type QueueProgress = {
 
 export type ScrollRequest = {
   id: number;
-  nonce: number;
 };
 
 const ENV_NAMES = [
@@ -152,7 +151,7 @@ export function useLibrary(options: Options) {
   const reveal = useCallback((book: Book, edit = false) => {
     showRef.current(book, edit);
     setSelectedId(book.id);
-    setScrollRequest({ id: book.id, nonce: Date.now() });
+    setScrollRequest({ id: book.id });
   }, []);
 
   const boot = useCallback(
@@ -509,7 +508,7 @@ export function useLibrary(options: Options) {
                     run: () => reveal(book, true),
                   });
                 }
-                setScrollRequest({ id: book.id, nonce: Date.now() });
+                setScrollRequest({ id: book.id });
               }
               pushToast({
                 title: `Added ${title}`,
@@ -827,7 +826,7 @@ export function useLibrary(options: Options) {
     [pushToast, refresh],
   );
 
-  /** Silent by design: the book panel shows "Saving…"/"Saved" and errors. */
+  /** Saves quietly; the book panel shows errors and retries. */
   const saveBookReading = useCallback(
     async (
       book: Book,

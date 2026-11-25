@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { writeMetadata } from "./calibre";
-import type { Host } from "./host";
-import type { Metadata } from "./types";
+import { writeMetadata } from "@/pipeline/calibre";
+import type { Host } from "@/pipeline/host";
+import type { Metadata } from "@/pipeline/types";
 
 const install = { dir: "C:\\Calibre", version: "9.18" };
 

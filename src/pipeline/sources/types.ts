@@ -5,9 +5,9 @@
  * response into normalised values; merging, candidate ordering, cover
  * validation, and error notes stay in the pipeline.
  */
-import type { CalibreInstall } from "../calibre";
-import type { Host } from "../host";
-import type { Metadata, SourceId } from "../types";
+import type { CalibreInstall } from "@/pipeline/calibre";
+import type { Host } from "@/pipeline/host";
+import type { Metadata, SourceId } from "@/pipeline/types";
 
 export type SourceKind = "metadata" | "cover";
 

@@ -1,5 +1,5 @@
-import { sourceLabel } from "../pipeline/sources/labels";
-import type { FlagReason } from "../pipeline/types";
+import { sourceLabel } from "@/pipeline/sources/labels";
+import type { FlagReason } from "@/pipeline/types";
 
 export { sourceLabel };
 

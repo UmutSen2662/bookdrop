@@ -9,9 +9,7 @@
 export const LAYOUT = {
   /**
    * The whole app surface — grid column and panel together — stops growing
-   * here and centers in the window. This keeps the panel attached to the grid
-   * instead of drifting to the window edge on wide screens. At 1520 the
-   * 1120px grid column holds six 160px cards with 12px to spare.
+   * here and centers, so the panel stays attached to the grid on wide screens.
    */
   appMaxWidth: 1520,
   panelWidth: 400,
@@ -19,24 +17,17 @@ export const LAYOUT = {
   gridGapX: 20,
   gridGapY: 28,
   /**
-   * Covers are a fixed width. A fluid `1fr` column would stretch each cover
-   * until another column fits, so the largest covers would get smaller as the
-   * window grows. Fixed tracks add a column instead and leave the remainder
-   * on the right. 160 keeps four columns at the 800px minimum, five at 1360,
-   * and six at the 1520 app cap.
+   * Covers are a fixed width: a fluid `1fr` column would stretch every cover
+   * until another column fits. Fixed tracks add a column instead and leave the
+   * remainder on the right.
    */
   cardWidth: 160,
   minWideColumns: 4,
 } as const;
 
 /**
- * panel + both grid paddings + four card widths + three column gaps.
- * 400 + 48 + 640 + 60 = 1148 px today.
- *
- * The scroll area's 10px overlay scrollbar sits inside the grid's 24px right
- * padding, so it does not consume a column's width. At this width the wide
- * grid has four columns; below it the panel overlays and the grid uses the
- * full window.
+ * The narrowest window that still fits the panel beside four grid columns.
+ * The overlay scrollbar sits inside the grid padding, so it costs no column.
  */
 export const WIDE_BREAKPOINT =
   LAYOUT.panelWidth +

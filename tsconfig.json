@@ -31,7 +31,8 @@
     "src/pipeline/host.node.ts",
     "src/pipeline/db.node.ts",
     "src/pipeline/test-host.ts",
-    "src/pipeline/test-sql.ts"
+    "src/pipeline/test-sql.ts",
+    "src/pipeline/test-book.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

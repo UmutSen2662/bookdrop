@@ -4,10 +4,10 @@
  * settings or the real library folder.
  */
 
-import { errorMessage } from "./errors";
-import type { Host } from "./host";
-import { DEFAULT_FILE_NAME_TEMPLATE } from "./names";
-import { joinPath, toForwardSlashes } from "./paths";
+import { errorMessage } from "@/pipeline/errors";
+import type { Host } from "@/pipeline/host";
+import { DEFAULT_FILE_NAME_TEMPLATE } from "@/pipeline/names";
+import { joinPath, toForwardSlashes } from "@/pipeline/paths";
 
 export type Config = {
   /** Directory holding config.json, db.sqlite, covers, tmp. */

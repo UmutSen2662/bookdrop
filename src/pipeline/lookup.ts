@@ -3,8 +3,8 @@
  * result plus the candidate list. Shared by ingest and the per-book refresh so
  * both make the same decisions.
  */
-import { type CalibreInstall, readMetadataOpf } from "./calibre";
-import type { Host } from "./host";
+import { type CalibreInstall, readMetadataOpf } from "@/pipeline/calibre";
+import type { Host } from "@/pipeline/host";
 import {
   buildCandidates,
   type MergeOutcome,
@@ -13,11 +13,11 @@ import {
   type ProviderValues,
   parseOpf,
   stripFilenameJunk,
-} from "./metadata";
-import { joinPath } from "./paths";
-import { runSources, type SourceRun, selectSources } from "./sources";
-import type { CoverLink } from "./sources/types";
-import type { Candidates } from "./types";
+} from "@/pipeline/metadata";
+import { joinPath } from "@/pipeline/paths";
+import { runSources, type SourceRun, selectSources } from "@/pipeline/sources";
+import type { CoverLink } from "@/pipeline/sources/types";
+import type { Candidates } from "@/pipeline/types";
 
 export type BookLookup = {
   file: OpfMetadata;

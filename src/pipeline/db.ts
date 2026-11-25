@@ -20,12 +20,11 @@ import {
   READ_STATUSES,
   type ReadStatus,
   type Status,
-} from "./types";
+} from "@/pipeline/types";
 
 export type SqlValue = string | number | null;
 
 export type SqlResult = {
-  rowsAffected: number;
   lastInsertId: number | null;
 };
 
@@ -41,8 +40,7 @@ export interface Sql {
 export type SqlRow = Record<string, unknown>;
 
 /**
- * tauri-plugin-sql/sqlx wants `$1`, `$2`, ... for SQLite. None of our SQL puts
- * a `?` inside a string literal, so a plain count is enough.
+ * Rewrite `?` placeholders for sqlx.
  */
 export function toSqlxPlaceholders(sql: string): string {
   let index = 0;
@@ -470,10 +468,7 @@ export class BookStore {
    * source/archive paths, and candidates are per-book data the EPUB does not
    * carry, so they stay as they are.
    */
-  async refreshFromEpub(
-    id: number,
-    input: ReconciledInput & { bookUuid?: string | null },
-  ): Promise<void> {
+  async refreshFromEpub(id: number, input: ReconciledInput): Promise<void> {
     const metadata = input.metadata;
     await this.sql.execute(
       `UPDATE books SET

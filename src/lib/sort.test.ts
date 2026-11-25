@@ -1,45 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { type Book, emptyCandidates } from "../pipeline/types";
-import { sortBooks } from "./sort";
+import { sortBooks } from "@/lib/sort";
+import { makeBook } from "@/pipeline/test-book";
+import type { Book } from "@/pipeline/types";
 
 function book(overrides: Partial<Book> = {}): Book {
-  const base: Book = {
-    id: 1,
-    bookUuid: null,
-    sha256: "a".repeat(64),
-    epubSha256: null,
-    fileSize: null,
-    fileMtimeMs: null,
-    sourcePath: null,
-    archivedPath: null,
-    libraryPath: null,
-    hasCover: true,
+  const base = makeBook({
     title: "Title",
     authors: "Author",
     authorSort: "Author",
     titleSort: "Title",
-    isbn: null,
-    description: null,
-    publisher: null,
-    published: null,
-    language: null,
-    tags: null,
-    series: null,
-    seriesIndex: null,
-    readStatus: "unread",
-    personalNotes: null,
-    missing: false,
-    status: "ok",
-    flagReason: null,
-    candidates: emptyCandidates(),
-    notes: null,
-    error: null,
-    pinned: false,
-    pinnedOrder: null,
-    addedAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
-  };
+  });
   // Most tests set only `title`; give them a matching derived sort title.
   if (overrides.title !== undefined && overrides.titleSort === undefined) {
     base.titleSort = overrides.title;

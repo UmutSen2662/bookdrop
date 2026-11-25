@@ -16,21 +16,25 @@ import {
   findCalibre,
   readMetadataOpf,
   writeMetadata,
-} from "./calibre";
-import { cleanEpub } from "./clean";
-import type { Config } from "./config";
+} from "@/pipeline/calibre";
+import { cleanEpub } from "@/pipeline/clean";
+import type { Config } from "@/pipeline/config";
 import {
   type DownloadedCover,
   downloadCover,
   storeCoverCandidates,
-} from "./covers";
-import type { BookStore } from "./db";
-import { errorMessage } from "./errors";
-import type { Host } from "./host";
-import { type BookLookup, lookupBookMetadata } from "./lookup";
-import { mergeMetadata, parseOpf, stripFilenameJunk } from "./metadata";
-import { formatLibraryFileName, withCollisionSuffix } from "./names";
-import { basename, extname, joinPath, stripExtension } from "./paths";
+} from "@/pipeline/covers";
+import type { BookStore } from "@/pipeline/db";
+import { errorMessage } from "@/pipeline/errors";
+import type { Host } from "@/pipeline/host";
+import { type BookLookup, lookupBookMetadata } from "@/pipeline/lookup";
+import {
+  mergeMetadata,
+  parseOpf,
+  stripFilenameJunk,
+} from "@/pipeline/metadata";
+import { formatLibraryFileName, withCollisionSuffix } from "@/pipeline/names";
+import { basename, extname, joinPath, stripExtension } from "@/pipeline/paths";
 import {
   type Book,
   type Candidates,
@@ -38,7 +42,7 @@ import {
   type FlagReason,
   type IngestOutcome,
   type Metadata,
-} from "./types";
+} from "@/pipeline/types";
 
 const DRM_EXTENSIONS = new Set([".acsm", ".kfx"]);
 const LOCKED_EXTENSIONS = new Set([".azw", ".azw3", ".mobi"]);
@@ -361,10 +365,8 @@ export async function ingestFile(
     }
   }
 
-  {
-    const duplicate = await stopIfDuplicate(store, base, sha256, bookUuid);
-    if (duplicate) return duplicate;
-  }
+  const duplicate = await stopIfDuplicate(store, base, sha256, bookUuid);
+  if (duplicate) return duplicate;
   if (inspectionFailure) {
     return record(
       store,

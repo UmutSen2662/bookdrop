@@ -3,8 +3,8 @@
  * books reach this function. Missing values always sort last, so a standalone
  * book does not jump to the top of a series sort.
  */
-import type { SortBy } from "../pipeline/config";
-import type { Book } from "../pipeline/types";
+import type { SortBy } from "@/pipeline/config";
+import type { Book } from "@/pipeline/types";
 
 function text(value: string | null | undefined): string {
   return (value ?? "").trim();

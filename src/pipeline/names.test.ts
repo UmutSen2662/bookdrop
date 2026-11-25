@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import type { Host } from "./host";
-import { uniqueLibraryTarget } from "./ingest";
+import type { Host } from "@/pipeline/host";
+import { uniqueLibraryTarget } from "@/pipeline/ingest";
 import {
   DEFAULT_FILE_NAME_TEMPLATE,
   formatLibraryFileName,
   templateProblems,
   truncateUtf8,
   withCollisionSuffix,
-} from "./names";
+} from "@/pipeline/names";
 
 function hostWith(names: string[]): Host {
   return {

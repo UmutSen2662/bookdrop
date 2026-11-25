@@ -2,27 +2,32 @@
  * Library rows and library files: pin, remove, reconcile, and the startup
  * cleanup. These are the operations the app calls outside the drop pipeline.
  */
-import type { CalibreInstall } from "./calibre";
+import type { CalibreInstall } from "@/pipeline/calibre";
 import {
   extractCover,
   failureText,
   readMetadataOpf,
   writeMetadata,
-} from "./calibre";
-import type { Config } from "./config";
+} from "@/pipeline/calibre";
+import type { Config } from "@/pipeline/config";
 import {
   type DownloadedCover,
   downloadCover,
   storeCoverCandidates,
-} from "./covers";
-import type { BookStore } from "./db";
-import { errorMessage } from "./errors";
-import type { Host } from "./host";
-import { lookupBookMetadata } from "./lookup";
-import { parseOpf } from "./metadata";
-import { formatLibraryFileName, withCollisionSuffix } from "./names";
-import { basename, dirname, joinPath, normalizedFolder } from "./paths";
-import type { Book, Candidates, Metadata, ReadStatus } from "./types";
+} from "@/pipeline/covers";
+import type { BookStore } from "@/pipeline/db";
+import { errorMessage } from "@/pipeline/errors";
+import type { Host } from "@/pipeline/host";
+import { lookupBookMetadata } from "@/pipeline/lookup";
+import { parseOpf } from "@/pipeline/metadata";
+import { formatLibraryFileName, withCollisionSuffix } from "@/pipeline/names";
+import {
+  basename,
+  dirname,
+  joinPath,
+  normalizedFolder,
+} from "@/pipeline/paths";
+import type { Book, Candidates, Metadata, ReadStatus } from "@/pipeline/types";
 
 /**
  * Update a row's `missing` flag from what is actually on disk. Returns the
@@ -985,11 +990,6 @@ export async function reconcile(
   return report;
 }
 
-/**
- * Keep the `missing` flag in step with the disk. The current library folder
- * must be readable: if the whole folder is unavailable, every book would look
- * missing and the real problem is already reported by reconcile.
- */
 export type MissingFilesReport = {
   /** Books whose library file cannot be found right now. */
   missing: number;
@@ -997,6 +997,11 @@ export type MissingFilesReport = {
   changed: number;
 };
 
+/**
+ * Keep the `missing` flag in step with the disk. The current library folder
+ * must be readable: if the whole folder is unavailable, every book would look
+ * missing and the real problem is already reported by reconcile.
+ */
 export async function markMissingFiles(
   host: Host,
   config: Config,

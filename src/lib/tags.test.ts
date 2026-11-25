@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalTags, parseTags, serializeTags } from "./tags";
+import { canonicalTags, parseTags, serializeTags } from "@/lib/tags";
 
 describe("parseTags", () => {
   it("splits, trims, and drops empty entries", () => {

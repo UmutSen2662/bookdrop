@@ -1,7 +1,7 @@
 import { DOMParser } from "@xmldom/xmldom";
 import { unzipSync, zipSync } from "fflate";
 import { describe, expect, it } from "vitest";
-import { cleanEpub } from "./clean";
+import { cleanEpub } from "@/pipeline/clean";
 
 const XHTML_NS = "http://www.w3.org/1999/xhtml";
 

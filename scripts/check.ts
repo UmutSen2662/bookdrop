@@ -5,12 +5,12 @@
  * library folder, the archive folder if enabled, the database, and the config.
  * Exits non-zero on any hard failure so it is usable from a shell loop.
  */
-import { findCalibre } from "../src/pipeline/calibre";
-import { configPath, loadConfig } from "../src/pipeline/config";
-import { openNodeStore } from "../src/pipeline/db.node";
-import { errorMessage } from "../src/pipeline/errors";
-import { createNodeHost } from "../src/pipeline/host.node";
-import { joinPath, normalizedFolder } from "../src/pipeline/paths";
+import { findCalibre } from "@/pipeline/calibre";
+import { configPath, loadConfig } from "@/pipeline/config";
+import { openNodeStore } from "@/pipeline/db.node";
+import { errorMessage } from "@/pipeline/errors";
+import { createNodeHost } from "@/pipeline/host.node";
+import { joinPath, normalizedFolder } from "@/pipeline/paths";
 
 const host = createNodeHost();
 const config = await loadConfig(host);

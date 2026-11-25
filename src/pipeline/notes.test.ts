@@ -1,45 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { notesExportFileName, notesExportJson } from "./notes";
-import { type Book, emptyCandidates } from "./types";
+import { notesExportFileName, notesExportJson } from "@/pipeline/notes";
+import { makeBook } from "@/pipeline/test-book";
+import type { Book } from "@/pipeline/types";
 
-function book(overrides: Partial<Book>): Book {
-  return {
-    id: 1,
+function book(overrides: Partial<Book> = {}): Book {
+  return makeBook({
     bookUuid: "uuid-1",
     sha256: "sha-1",
     epubSha256: "epub-1",
-    fileSize: null,
-    fileMtimeMs: null,
     sourcePath: "C:\\drop\\a.epub",
-    archivedPath: null,
     libraryPath: "C:\\library\\a.epub",
-    hasCover: false,
     title: "A",
     authors: "Author",
-    authorSort: null,
-    titleSort: null,
-    isbn: null,
-    description: null,
-    publisher: null,
-    published: null,
-    language: null,
-    tags: null,
-    series: null,
-    seriesIndex: null,
-    readStatus: "unread",
-    personalNotes: null,
-    missing: false,
-    status: "ok",
-    flagReason: null,
-    candidates: emptyCandidates(),
-    notes: null,
-    error: null,
-    pinned: false,
-    pinnedOrder: null,
-    addedAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
-  };
+  });
 }
 
 describe("notesExportJson", () => {

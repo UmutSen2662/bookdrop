@@ -1,11 +1,16 @@
 import { createHash } from "node:crypto";
 import { zipSync } from "fflate";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { Config } from "./config";
-import { BookStore, type Sql } from "./db";
-import type { FileStat, Host, HttpResult, ProcessResult } from "./host";
-import { ingestFile } from "./ingest";
-import { openTestSql } from "./test-sql";
+import type { Config } from "@/pipeline/config";
+import { BookStore, type Sql } from "@/pipeline/db";
+import type {
+  FileStat,
+  Host,
+  HttpResult,
+  ProcessResult,
+} from "@/pipeline/host";
+import { ingestFile } from "@/pipeline/ingest";
+import { openTestSql } from "@/pipeline/test-sql";
 
 type FakeMetadata = { title: string; authors: string };
 

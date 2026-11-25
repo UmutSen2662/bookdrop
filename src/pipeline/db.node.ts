@@ -5,7 +5,12 @@
 import { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-import { BookStore, type Sql, type SqlResult, type SqlValue } from "./db";
+import {
+  BookStore,
+  type Sql,
+  type SqlResult,
+  type SqlValue,
+} from "@/pipeline/db";
 
 export function createNodeSql(filePath: string): Sql {
   mkdirSync(path.dirname(filePath), { recursive: true });
@@ -17,7 +22,6 @@ export function createNodeSql(filePath: string): Sql {
     async execute(sql, params: SqlValue[] = []): Promise<SqlResult> {
       const result = db.run(sql, params);
       return {
-        rowsAffected: Number(result.changes),
         lastInsertId:
           typeof result.lastInsertRowid === "bigint"
             ? Number(result.lastInsertRowid)

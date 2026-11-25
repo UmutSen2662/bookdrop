@@ -5,13 +5,13 @@
  * the Bun SQLite adapter to the pipeline; the app wires its Tauri host instead.
  */
 
-import { type CalibreInstall, findCalibre } from "../src/pipeline/calibre";
-import { loadConfig } from "../src/pipeline/config";
-import { openNodeStore } from "../src/pipeline/db.node";
-import { errorMessage } from "../src/pipeline/errors";
-import { createNodeHost } from "../src/pipeline/host.node";
-import { ingestFile } from "../src/pipeline/ingest";
-import { joinPath } from "../src/pipeline/paths";
+import { type CalibreInstall, findCalibre } from "@/pipeline/calibre";
+import { loadConfig } from "@/pipeline/config";
+import { openNodeStore } from "@/pipeline/db.node";
+import { errorMessage } from "@/pipeline/errors";
+import { createNodeHost } from "@/pipeline/host.node";
+import { ingestFile } from "@/pipeline/ingest";
+import { joinPath } from "@/pipeline/paths";
 
 const files = process.argv.slice(2);
 if (files.length === 0) {

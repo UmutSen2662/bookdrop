@@ -1,59 +1,22 @@
 import { describe, expect, it } from "vitest";
-import type { Book } from "../pipeline/types";
-import { bookMatches, parseQuery } from "./search";
+import { bookMatches, parseQuery } from "@/lib/search";
+import { makeBook } from "@/pipeline/test-book";
+import type { Book } from "@/pipeline/types";
 
 function book(overrides: Partial<Book> = {}): Book {
-  return {
-    id: 1,
-    bookUuid: null,
-    sha256: "a".repeat(64),
-    epubSha256: null,
-    fileSize: null,
-    fileMtimeMs: null,
-    sourcePath: null,
-    archivedPath: null,
-    libraryPath: null,
-    hasCover: true,
+  return makeBook({
     title: "She Drives Me Crazy",
     authors: "Kelly Quindlen",
     authorSort: "Quindlen, Kelly",
-    titleSort: null,
-    isbn: null,
-    description: null,
-    publisher: null,
-    published: null,
-    language: null,
     tags: "Young Adult, Romance",
     series: "She Drives Me Crazy",
     seriesIndex: "1",
-    readStatus: "unread",
-    personalNotes: null,
-    missing: false,
-    status: "ok",
-    flagReason: null,
-    candidates: {
-      fields: {
-        title: [],
-        authors: [],
-        isbn: [],
-        description: [],
-        publisher: [],
-        published: [],
-        language: [],
-        tags: [],
-        series: [],
-        seriesIndex: [],
-      },
-      covers: [],
-    },
-    notes: null,
-    error: null,
-    pinned: false,
-    pinnedOrder: null,
+    hasCover: true,
+    libraryPath: null,
     addedAt: "2026-11-13T00:00:00.000Z",
     updatedAt: "2026-11-13T00:00:00.000Z",
     ...overrides,
-  };
+  });
 }
 
 describe("parseQuery", () => {

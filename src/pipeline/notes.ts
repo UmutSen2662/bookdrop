@@ -3,7 +3,7 @@
  * identifiers so a later import can match books in another library folder.
  * The EPUB itself is not included.
  */
-import type { Book } from "./types";
+import type { Book } from "@/pipeline/types";
 
 export const NOTES_FORMAT = "bookdrop-notes";
 export const NOTES_FORMAT_VERSION = 1;

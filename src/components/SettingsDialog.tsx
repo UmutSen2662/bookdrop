@@ -4,32 +4,34 @@ import { save as chooseSavePath, open } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { FolderOpen, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatBytes } from "../lib/format";
-import { CALIBRE_DOWNLOAD_URL } from "../lib/links";
-import { useAppVersion } from "../lib/useAppVersion";
-import type { CalibreInstall } from "../pipeline/calibre";
-import type { Config } from "../pipeline/config";
-import { errorMessage } from "../pipeline/errors";
-import type { Host } from "../pipeline/host";
-import type { RenamePlan, RenameReport } from "../pipeline/library";
+import { Button } from "@/components/ui/button";
+import { Callout } from "@/components/ui/callout";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { SECTION_LABEL } from "@/components/ui/typography";
+import { formatBytes } from "@/lib/format";
+import { CALIBRE_DOWNLOAD_URL } from "@/lib/links";
+import { useAppVersion } from "@/lib/useAppVersion";
+import type { CalibreInstall } from "@/pipeline/calibre";
+import type { Config } from "@/pipeline/config";
+import { errorMessage } from "@/pipeline/errors";
+import type { Host } from "@/pipeline/host";
+import type { RenamePlan, RenameReport } from "@/pipeline/library";
 import {
   DEFAULT_FILE_NAME_TEMPLATE,
   FILE_NAME_TOKENS,
   formatLibraryFileName,
   templateProblems,
-} from "../pipeline/names";
-import { notesExportFileName, notesExportJson } from "../pipeline/notes";
+} from "@/pipeline/names";
+import { notesExportFileName, notesExportJson } from "@/pipeline/notes";
 import {
   basename,
   dirname,
   joinPath,
   normalizedFolder,
-} from "../pipeline/paths";
-import type { Book } from "../pipeline/types";
-import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
-import { Input } from "./ui/input";
-import { Switch } from "./ui/switch";
+} from "@/pipeline/paths";
+import type { Book } from "@/pipeline/types";
 
 type Props = {
   config: Config;
@@ -201,31 +203,29 @@ export function SettingsDialog({
     };
   }, [host, originalsDir]);
 
+  function resetPlan() {
+    setPlan(null);
+    setRenameReport(null);
+  }
+
+  async function pickFolder(title: string): Promise<string | null> {
+    const selected = await open({ directory: true, multiple: false, title });
+    return typeof selected === "string" ? selected : null;
+  }
+
   async function pickLibrary() {
-    const selected = await open({
-      directory: true,
-      multiple: false,
-      title: "Choose the library folder",
-    });
-    if (typeof selected === "string") setLibraryDir(selected);
+    const selected = await pickFolder("Choose the library folder");
+    if (selected) setLibraryDir(selected);
   }
 
   async function pickArchive() {
-    const selected = await open({
-      directory: true,
-      multiple: false,
-      title: "Choose the archive folder",
-    });
-    if (typeof selected === "string") setOriginalsDir(selected);
+    const selected = await pickFolder("Choose the archive folder");
+    if (selected) setOriginalsDir(selected);
   }
 
   async function pickCalibre() {
-    const selected = await open({
-      directory: true,
-      multiple: false,
-      title: "Choose the calibre folder",
-    });
-    if (typeof selected === "string") setCalibreDir(selected);
+    const selected = await pickFolder("Choose the calibre folder");
+    if (selected) setCalibreDir(selected);
   }
 
   async function exportNotes() {
@@ -263,20 +263,10 @@ export function SettingsDialog({
     }
   }
 
-  async function openLibrary() {
-    if (!libraryDir) return;
+  async function openFolder(path: string) {
     setError(null);
     try {
-      await invoke("open_path", { path: libraryDir });
-    } catch (openError) {
-      setError(errorMessage(openError));
-    }
-  }
-
-  async function openDataFolder() {
-    setError(null);
-    try {
-      await invoke("open_path", { path: config.homeDir });
+      await invoke("open_path", { path });
     } catch (openError) {
       setError(errorMessage(openError));
     }
@@ -284,8 +274,7 @@ export function SettingsDialog({
 
   function insertToken(token: string) {
     const text = `{${token}}`;
-    setPlan(null);
-    setRenameReport(null);
+    resetPlan();
     const input = templateInput.current;
     if (!input) {
       setTemplate((current) => current + text);
@@ -382,9 +371,7 @@ export function SettingsDialog({
         className="flex max-h-[90vh] flex-col overflow-hidden p-0"
       >
         <div className="flex items-center justify-between border-b px-5 py-3">
-          <DialogTitle className="text-base font-semibold">
-            Settings
-          </DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
           <Button
             variant="ghost"
             size="icon"
@@ -398,9 +385,7 @@ export function SettingsDialog({
 
         <div className="min-h-0 flex-1 overflow-y-auto p-5">
           <section>
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Library folder
-            </h3>
+            <h3 className={SECTION_LABEL}>Library folder</h3>
             <div className="mt-2 flex gap-2">
               <Input
                 value={libraryDir}
@@ -417,13 +402,13 @@ export function SettingsDialog({
                 variant="ghost"
                 size="sm"
                 disabled={!libraryDir}
-                onClick={() => void openLibrary()}
+                onClick={() => void openFolder(libraryDir)}
               >
                 Open
               </Button>
             </div>
             {libraryChanged && (
-              <p className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+              <Callout tone="warning" className="mt-2">
                 New drops go to this folder.{" "}
                 {outsideCount > 0 ? (
                   <>
@@ -437,7 +422,7 @@ export function SettingsDialog({
                 ) : (
                   "Nothing already filed needs to move."
                 )}
-              </p>
+              </Callout>
             )}
             {!libraryChanged && (
               <p className="mt-1 text-[11px] text-muted-foreground">
@@ -448,17 +433,14 @@ export function SettingsDialog({
 
           <section className="mt-6">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                File names
-              </h3>
+              <h3 className={SECTION_LABEL}>File names</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 disabled={template === DEFAULT_FILE_NAME_TEMPLATE}
                 onClick={() => {
                   setTemplate(DEFAULT_FILE_NAME_TEMPLATE);
-                  setPlan(null);
-                  setRenameReport(null);
+                  resetPlan();
                 }}
               >
                 Reset
@@ -470,8 +452,7 @@ export function SettingsDialog({
               onChange={(event) => {
                 setTemplate(event.target.value);
                 // A plan names files for the template it was built from.
-                setPlan(null);
-                setRenameReport(null);
+                resetPlan();
               }}
               placeholder={DEFAULT_FILE_NAME_TEMPLATE}
               aria-label="Filename template"
@@ -505,9 +486,7 @@ export function SettingsDialog({
 
             {preview.length > 0 && (
               <div className="mt-3 rounded-lg border bg-muted/30 px-3 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  Preview
-                </p>
+                <p className={SECTION_LABEL}>Preview</p>
                 <ul className="mt-1 space-y-0.5">
                   {preview.slice(0, 5).map(({ book, path, next }) => (
                     <li
@@ -532,7 +511,7 @@ export function SettingsDialog({
             )}
 
             {plan ? (
-              <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+              <Callout tone="warning" className="mt-3">
                 <p className="text-xs font-medium">
                   {plan.moves.length === 0
                     ? "Every filename already matches."
@@ -558,7 +537,7 @@ export function SettingsDialog({
                   </ul>
                 )}
                 {plan.problems.length > 0 && (
-                  <ul className="mt-1 text-[11px] text-amber-800 dark:text-amber-200">
+                  <ul className="mt-1 text-[11px]">
                     {plan.problems.map((problem) => (
                       <li key={problem}>{problem}</li>
                     ))}
@@ -585,7 +564,7 @@ export function SettingsDialog({
                     Cancel
                   </Button>
                 </div>
-              </div>
+              </Callout>
             ) : (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Button
@@ -628,9 +607,7 @@ export function SettingsDialog({
           </section>
 
           <section className="mt-6">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Ingest
-            </h3>
+            <h3 className={SECTION_LABEL}>Ingest</h3>
             <div className="mt-2 space-y-1">
               <ToggleRow
                 label="Fetch metadata online"
@@ -651,9 +628,7 @@ export function SettingsDialog({
           </section>
 
           <section className="mt-6">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Archive originals
-            </h3>
+            <h3 className={SECTION_LABEL}>Archive originals</h3>
             <div className="mt-2">
               <ToggleRow
                 label="Keep a copy of every dropped file"
@@ -688,9 +663,7 @@ export function SettingsDialog({
           </section>
 
           <section className="mt-6">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              calibre
-            </h3>
+            <h3 className={SECTION_LABEL}>calibre</h3>
             <div className="mt-2 flex items-center gap-2">
               {install ? (
                 <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
@@ -743,9 +716,7 @@ export function SettingsDialog({
           </section>
 
           <section className="mt-6">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Data folder
-            </h3>
+            <h3 className={SECTION_LABEL}>Data folder</h3>
             <div className="mt-2 flex items-center gap-2">
               <p
                 className="min-w-0 flex-1 truncate text-xs text-muted-foreground"
@@ -756,7 +727,7 @@ export function SettingsDialog({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => void openDataFolder()}
+                onClick={() => void openFolder(config.homeDir)}
               >
                 <FolderOpen aria-hidden />
                 Open
@@ -769,9 +740,7 @@ export function SettingsDialog({
           </section>
 
           <section className="mt-6">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Notes
-            </h3>
+            <h3 className={SECTION_LABEL}>Notes</h3>
             <div className="mt-2 flex items-center gap-2">
               <p className="min-w-0 flex-1 text-xs text-muted-foreground">
                 {exportMessage ??
@@ -788,9 +757,7 @@ export function SettingsDialog({
           </section>
 
           <section className="mt-6 border-t pt-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              About
-            </h3>
+            <h3 className={SECTION_LABEL}>About</h3>
             <p className="mt-1 text-sm font-medium">
               Bookdrop{version ? ` ${version}` : ""}
             </p>
@@ -813,9 +780,9 @@ export function SettingsDialog({
 
         <div className="border-t px-5 py-3">
           {error && (
-            <p className="mb-3 max-h-24 overflow-y-auto whitespace-pre-wrap rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <Callout className="mb-3 max-h-24 overflow-y-auto whitespace-pre-wrap">
               {error}
-            </p>
+            </Callout>
           )}
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={onClose} disabled={saving}>

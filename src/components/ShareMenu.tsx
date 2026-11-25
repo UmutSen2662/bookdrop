@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import type { ShareAddress, ShareState } from "../lib/useOpds";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTitle,
   PopoverTrigger,
-} from "./ui/popover";
+} from "@/components/ui/popover";
+import { POPOVER_LABEL } from "@/components/ui/typography";
+import type { ShareAddress, ShareState } from "@/lib/useOpds";
 
 type Props = {
   state: ShareState;
@@ -44,9 +45,7 @@ export function ShareButton({ state, onStart, onStop, onRefresh }: Props) {
           Sharing failed
         </PopoverTrigger>
         <PopoverContent align="start" side="top" className="w-80">
-          <PopoverTitle className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Sharing failed
-          </PopoverTitle>
+          <PopoverTitle className={POPOVER_LABEL}>Sharing failed</PopoverTitle>
           <p className="text-xs leading-relaxed text-muted-foreground">
             {state.message}
           </p>
@@ -87,7 +86,7 @@ export function ShareButton({ state, onStart, onStop, onRefresh }: Props) {
           className="w-[26rem] max-w-[calc(100vw-2rem)] gap-0 p-0"
         >
           <div className="border-b px-3 py-2">
-            <PopoverTitle className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            <PopoverTitle className={POPOVER_LABEL}>
               Share over Wi-Fi
             </PopoverTitle>
           </div>

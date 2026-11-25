@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LAYOUT, WIDE_BREAKPOINT } from "./layout";
+import { LAYOUT, WIDE_BREAKPOINT } from "@/lib/layout";
 
 function columnsAt(windowWidth: number): number {
   const inner = windowWidth - LAYOUT.panelWidth - LAYOUT.gridPadX * 2;

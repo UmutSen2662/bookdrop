@@ -2,7 +2,7 @@
  * Run the cleaner alone: bun scripts/clean.ts in.epub [out.epub]
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { cleanEpub } from "../src/pipeline/clean";
+import { cleanEpub } from "@/pipeline/clean";
 
 const [input, output] = process.argv.slice(2);
 if (!input) {

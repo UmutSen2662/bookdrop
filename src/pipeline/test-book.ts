@@ -1,0 +1,42 @@
+/** A complete Book for tests that only set a few fields. */
+import { type Book, emptyCandidates } from "@/pipeline/types";
+
+export function makeBook(overrides: Partial<Book> = {}): Book {
+  return {
+    id: 1,
+    bookUuid: null,
+    sha256: "a".repeat(64),
+    epubSha256: null,
+    fileSize: null,
+    fileMtimeMs: null,
+    sourcePath: null,
+    archivedPath: null,
+    libraryPath: "C:\\library\\Dune.epub",
+    hasCover: false,
+    title: "Dune",
+    authors: "Frank Herbert",
+    authorSort: null,
+    titleSort: null,
+    isbn: null,
+    description: null,
+    publisher: null,
+    published: null,
+    language: null,
+    tags: null,
+    series: null,
+    seriesIndex: null,
+    readStatus: "unread",
+    personalNotes: null,
+    missing: false,
+    status: "ok",
+    flagReason: null,
+    candidates: emptyCandidates(),
+    notes: null,
+    error: null,
+    pinned: false,
+    pinnedOrder: null,
+    addedAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-02T00:00:00.000Z",
+    ...overrides,
+  };
+}

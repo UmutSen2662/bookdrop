@@ -2,14 +2,29 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { RefreshCw, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BookCover } from "@/components/BookCover";
+import { CoverCrop } from "@/components/CoverCrop";
+import { FieldPicker } from "@/components/FieldPicker";
+import { TagEditor } from "@/components/TagEditor";
+import { Button } from "@/components/ui/button";
+import { Callout } from "@/components/ui/callout";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { SECTION_LABEL } from "@/components/ui/typography";
+import { textToParagraphHtml } from "@/lib/description";
+import { sourceLabel } from "@/lib/format";
+import { parseTags, serializeTags } from "@/lib/tags";
 import { cn } from "@/lib/utils";
-import { textToParagraphHtml } from "../lib/description";
-import { sourceLabel } from "../lib/format";
-import { parseTags, serializeTags } from "../lib/tags";
-import { errorMessage } from "../pipeline/errors";
-import type { Host } from "../pipeline/host";
-import type { CoverSize, RefreshMetadataResult } from "../pipeline/library";
-import { extname, joinPath } from "../pipeline/paths";
+import { errorMessage } from "@/pipeline/errors";
+import type { Host } from "@/pipeline/host";
+import type { CoverSize, RefreshMetadataResult } from "@/pipeline/library";
+import { isRealDate } from "@/pipeline/metadata";
+import { extname, joinPath } from "@/pipeline/paths";
 import {
   type Book,
   CANDIDATE_FIELDS,
@@ -17,19 +32,7 @@ import {
   type Candidates,
   type FieldCandidate,
   type Metadata,
-} from "../pipeline/types";
-import { BookCover } from "./BookCover";
-import { CoverCrop } from "./CoverCrop";
-import { FieldPicker } from "./FieldPicker";
-import { TagEditor } from "./TagEditor";
-import { Button } from "./ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "./ui/dialog";
-import { Input } from "./ui/input";
+} from "@/pipeline/types";
 
 type CoverChoice =
   | { kind: "current" }
@@ -124,19 +127,6 @@ function imageMime(path: string): string {
     default:
       return "image/jpeg";
   }
-}
-
-function coverSizeLabel(size: CoverSize): string {
-  return `${size.width}×${size.height}`;
-}
-
-function isRealDate(year: number, month: number, day: number): boolean {
-  const date = new Date(Date.UTC(year, month - 1, day));
-  return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month - 1 &&
-    date.getUTCDate() === day
-  );
 }
 
 /**
@@ -523,13 +513,11 @@ export function BookSheet({
     >
       <DialogContent
         showCloseButton={false}
-        className="flex max-h-[92vh] w-[calc(100%-2rem)] max-w-[900px] flex-col overflow-hidden p-0 sm:max-w-[900px]"
+        className="flex max-h-[92vh] w-[calc(100%-2rem)] flex-col overflow-hidden p-0 sm:max-w-[900px]"
       >
         <div className="flex items-center justify-between border-b px-5 py-3">
           <div>
-            <DialogTitle className="text-base font-semibold">
-              Edit book
-            </DialogTitle>
+            <DialogTitle>Edit book</DialogTitle>
             <p className="text-xs text-muted-foreground">
               {book.title || "Untitled"}
             </p>
@@ -564,13 +552,15 @@ export function BookSheet({
 
         <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto p-5 md:grid-cols-[220px_1fr]">
           <div className="self-start">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Cover
-            </h3>
+            <h3 className={SECTION_LABEL}>Cover</h3>
             <div className="mt-2 flex flex-col gap-2">
               <CoverOption
                 label="In the file"
-                size={coverSize ? coverSizeLabel(coverSize) : undefined}
+                size={
+                  coverSize
+                    ? `${coverSize.width}×${coverSize.height}`
+                    : undefined
+                }
                 selected={cover.kind === "current"}
                 onSelect={() => setCover({ kind: "current" })}
               >
@@ -631,17 +621,13 @@ export function BookSheet({
 
           <div className="space-y-4">
             {book.missing && (
-              <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              <Callout>
                 The library file is missing. Restore it and use Recheck in the
                 book panel before saving metadata or cover changes. Reading
                 status and notes are edited in the panel.
-              </p>
+              </Callout>
             )}
-            {refreshNote && (
-              <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                {refreshNote}
-              </p>
-            )}
+            {refreshNote && <Callout tone="muted">{refreshNote}</Callout>}
             <FieldPicker
               field="title"
               label={FIELD_LABELS.title}
@@ -818,9 +804,9 @@ export function BookSheet({
 
         <div className="border-t px-5 py-3">
           {error && (
-            <p className="mb-3 max-h-24 overflow-y-auto whitespace-pre-wrap rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <Callout className="mb-3 max-h-24 overflow-y-auto whitespace-pre-wrap">
               {error}
-            </p>
+            </Callout>
           )}
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
@@ -870,9 +856,7 @@ export function BookSheet({
           }}
         >
           <DialogContent showCloseButton={false}>
-            <DialogTitle className="text-base font-semibold">
-              Discard changes?
-            </DialogTitle>
+            <DialogTitle>Discard changes?</DialogTitle>
             <DialogDescription className="mt-1 text-sm text-muted-foreground">
               The fields and cover you changed will be lost.
             </DialogDescription>

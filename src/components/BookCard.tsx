@@ -1,8 +1,8 @@
 import { GripVertical, Pin } from "lucide-react";
+import { BookCover } from "@/components/BookCover";
+import { isOutsideLibrary } from "@/lib/outside";
 import { cn } from "@/lib/utils";
-import { isOutsideLibrary } from "../lib/outside";
-import type { Book } from "../pipeline/types";
-import { BookCover } from "./BookCover";
+import type { Book } from "@/pipeline/types";
 
 type DragState = {
   dragging: boolean;

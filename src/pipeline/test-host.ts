@@ -2,7 +2,12 @@
  * An in-memory Host for tests that only care about HTTP, files, and argv.
  * `src/pipeline/library.test.ts` keeps its own richer fake for calibre output.
  */
-import type { FileStat, Host, HttpResult, ProcessResult } from "./host";
+import type {
+  FileStat,
+  Host,
+  HttpResult,
+  ProcessResult,
+} from "@/pipeline/host";
 
 export type FakeResponse = {
   status: number;

@@ -1,8 +1,8 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { errorMessage } from "../pipeline/errors";
-import type { Book } from "../pipeline/types";
-import { type ShareBook, shareEntries } from "./opds";
+import { type ShareBook, shareEntries } from "@/lib/opds";
+import { errorMessage } from "@/pipeline/errors";
+import type { Book } from "@/pipeline/types";
 
 /** One reachable origin and the adapter that owns it. */
 export type ShareAddress = { url: string; name: string };

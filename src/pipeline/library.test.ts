@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { Config } from "./config";
-import { BookStore, type Sql } from "./db";
-import type { FileStat, Host, HttpResult, ProcessResult } from "./host";
+import type { Config } from "@/pipeline/config";
+import { BookStore, type Sql } from "@/pipeline/db";
+import type {
+  FileStat,
+  Host,
+  HttpResult,
+  ProcessResult,
+} from "@/pipeline/host";
 import {
   applyLibraryRenames,
   checkBookFile,
@@ -13,9 +18,9 @@ import {
   refreshBookMetadata,
   removeBook,
   startup,
-} from "./library";
-import { openTestSql } from "./test-sql";
-import { emptyCandidates, type IngestOutcome } from "./types";
+} from "@/pipeline/library";
+import { openTestSql } from "@/pipeline/test-sql";
+import { emptyCandidates, type IngestOutcome } from "@/pipeline/types";
 
 type FakeMetadata = {
   title: string;

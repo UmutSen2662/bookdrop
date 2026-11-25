@@ -2,11 +2,11 @@
  * iTunes Search: the fastest cover source, and a second opinion on title and
  * author. No key, one JSON request.
  */
-import { surnamesMatch, titlesMatch } from "../metadata";
-import { joinPath } from "../paths";
-import type { Metadata } from "../types";
-import { parseJson } from "./json";
-import type { BookSource, SourceResult } from "./types";
+import { surnamesMatch, titlesMatch } from "@/pipeline/metadata";
+import { joinPath } from "@/pipeline/paths";
+import { parseJson } from "@/pipeline/sources/json";
+import type { BookSource, SourceResult } from "@/pipeline/sources/types";
+import type { Metadata } from "@/pipeline/types";
 
 const HTTP_TIMEOUT = 15_000;
 

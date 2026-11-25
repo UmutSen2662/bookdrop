@@ -3,10 +3,10 @@
  * candidate storage. Provider lookups live in `sources/`; this file knows
  * nothing about which services exist.
  */
-import type { Host } from "./host";
-import { extname, joinPath, toForwardSlashes } from "./paths";
-import type { CoverLink } from "./sources/types";
-import type { CoverCandidate } from "./types";
+import type { Host } from "@/pipeline/host";
+import { extname, joinPath, toForwardSlashes } from "@/pipeline/paths";
+import type { CoverLink } from "@/pipeline/sources/types";
+import type { CoverCandidate } from "@/pipeline/types";
 
 const HTTP_TIMEOUT = 15_000;
 const MIN_COVER_BYTES = 8 * 1024;

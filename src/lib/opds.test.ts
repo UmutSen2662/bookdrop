@@ -1,45 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { type Book, emptyCandidates } from "../pipeline/types";
-import { shareEntries } from "./opds";
+import { shareEntries } from "@/lib/opds";
+import { makeBook } from "@/pipeline/test-book";
+import type { Book } from "@/pipeline/types";
 
 function book(overrides: Partial<Book> = {}): Book {
-  return {
-    id: 1,
-    bookUuid: null,
+  return makeBook({
     sha256: "drop-hash",
-    epubSha256: null,
     fileSize: 1024,
     fileMtimeMs: 1,
-    sourcePath: null,
-    archivedPath: null,
-    libraryPath: "C:\\library\\Dune.epub",
-    hasCover: false,
     title: "Dune",
     authors: "Frank Herbert",
-    authorSort: null,
-    titleSort: null,
-    isbn: null,
-    description: null,
-    publisher: null,
-    published: null,
-    language: null,
-    tags: null,
-    series: null,
-    seriesIndex: null,
-    readStatus: "unread",
-    personalNotes: null,
-    missing: false,
-    status: "ok",
-    flagReason: null,
-    candidates: emptyCandidates(),
-    notes: null,
-    error: null,
-    pinned: false,
-    pinnedOrder: null,
-    addedAt: "2026-11-01T00:00:00.000Z",
     updatedAt: "2026-11-02T00:00:00.000Z",
     ...overrides,
-  };
+  });
 }
 
 const HOME = "C:\\data\\bookdrop";

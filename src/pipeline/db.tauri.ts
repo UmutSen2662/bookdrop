@@ -12,8 +12,8 @@ import {
   type SqlResult,
   type SqlValue,
   toSqlxPlaceholders,
-} from "./db";
-import { toForwardSlashes } from "./paths";
+} from "@/pipeline/db";
+import { toForwardSlashes } from "@/pipeline/paths";
 
 export async function openTauriStore(dbPath: string): Promise<BookStore> {
   // tauri-plugin-sql resolves a sqlite path against the app config dir, but a
@@ -25,7 +25,6 @@ export async function openTauriStore(dbPath: string): Promise<BookStore> {
     async execute(query, params: SqlValue[] = []): Promise<SqlResult> {
       const result = await database.execute(toSqlxPlaceholders(query), params);
       return {
-        rowsAffected: Number(result.rowsAffected ?? 0),
         lastInsertId:
           result.lastInsertId === undefined || result.lastInsertId === null
             ? null

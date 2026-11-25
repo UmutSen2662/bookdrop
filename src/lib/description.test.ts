@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { htmlToPlainText, textToParagraphHtml } from "./description";
+import { htmlToPlainText, textToParagraphHtml } from "@/lib/description";
 
 describe("textToParagraphHtml", () => {
   it("turns blank lines into paragraphs", () => {

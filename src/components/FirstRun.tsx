@@ -1,6 +1,6 @@
 import { FolderOpen, LibraryBig } from "lucide-react";
 import { useState } from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   onChoose: () => Promise<void>;

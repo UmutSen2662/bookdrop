@@ -5,9 +5,9 @@
  * source: the app cannot attribute a field to Google or Open Library
  * separately. The id predates the registry and is stored in existing rows.
  */
-import { fetchMetadata } from "../calibre";
-import { parseOpf } from "../metadata";
-import type { BookSource, SourceResult } from "./types";
+import { fetchMetadata } from "@/pipeline/calibre";
+import { parseOpf } from "@/pipeline/metadata";
+import type { BookSource, SourceResult } from "@/pipeline/sources/types";
 
 export const calibreSource: BookSource = {
   id: "google_openlibrary",

@@ -15,7 +15,12 @@ import {
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
-import type { FileStat, Host, HttpResult, ProcessResult } from "./host";
+import type {
+  FileStat,
+  Host,
+  HttpResult,
+  ProcessResult,
+} from "@/pipeline/host";
 
 /** Matches the cap the Rust host imposes: no cover or JSON body needs more. */
 const HTTP_MAX_BYTES = 10 * 1024 * 1024;

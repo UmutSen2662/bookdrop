@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { downloadCover, imageSize, storeCoverCandidates } from "./covers";
-import { FakeHost, type FakeResponse, jpeg, pad, png } from "./test-host";
+import {
+  downloadCover,
+  imageSize,
+  storeCoverCandidates,
+} from "@/pipeline/covers";
+import {
+  FakeHost,
+  type FakeResponse,
+  jpeg,
+  pad,
+  png,
+} from "@/pipeline/test-host";
 
 describe("downloadCover", () => {
   it("accepts a large JPEG and reports its size", async () => {

@@ -8,15 +8,19 @@
  * To add a source: write `sources/<name>.ts` and add it to `BOOK_SOURCES`.
  * The merge, candidate list, cover download, and UI labels need no changes.
  */
-import type { CalibreInstall } from "../calibre";
-import { errorMessage } from "../errors";
-import type { Host } from "../host";
-import { joinPath } from "../paths";
-import { calibreSource } from "./calibre";
-import { itunesSource } from "./itunes";
-import { sourceLabel } from "./labels";
-import { openLibrarySource } from "./openlibrary";
-import type { BookSource, SourceQuery, SourceResult } from "./types";
+import type { CalibreInstall } from "@/pipeline/calibre";
+import { errorMessage } from "@/pipeline/errors";
+import type { Host } from "@/pipeline/host";
+import { joinPath } from "@/pipeline/paths";
+import { calibreSource } from "@/pipeline/sources/calibre";
+import { itunesSource } from "@/pipeline/sources/itunes";
+import { sourceLabel } from "@/pipeline/sources/labels";
+import { openLibrarySource } from "@/pipeline/sources/openlibrary";
+import type {
+  BookSource,
+  SourceQuery,
+  SourceResult,
+} from "@/pipeline/sources/types";
 
 export const BOOK_SOURCES: readonly BookSource[] = [
   calibreSource,

@@ -1,15 +1,16 @@
 import { Trash2, X } from "lucide-react";
 import { useState } from "react";
-import { errorMessage } from "../pipeline/errors";
-import type { Book } from "../pipeline/types";
-import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Callout } from "@/components/ui/callout";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "./ui/dialog";
+} from "@/components/ui/dialog";
+import { errorMessage } from "@/pipeline/errors";
+import type { Book } from "@/pipeline/types";
 
 type Props = {
   book: Book;
@@ -45,9 +46,7 @@ export function RemoveDialog({ book, onClose, onRemove }: Props) {
       <DialogContent showCloseButton={false} size="md">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <DialogTitle className="text-base font-semibold">
-              Remove this book?
-            </DialogTitle>
+            <DialogTitle>Remove this book?</DialogTitle>
             <p className="mt-1 text-sm text-muted-foreground">
               {book.title || "Untitled"}
             </p>
@@ -80,11 +79,7 @@ export function RemoveDialog({ book, onClose, onRemove }: Props) {
           </label>
         )}
 
-        {error && (
-          <p className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-            {error}
-          </p>
-        )}
+        {error && <Callout className="mt-3">{error}</Callout>}
 
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={busy}>

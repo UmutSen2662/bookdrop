@@ -8,22 +8,26 @@ import {
   Sun,
   X,
 } from "lucide-react";
-import { type RefObject, useState } from "react";
-import { isDark, setDark } from "../lib/theme";
-import type { QueueProgress } from "../lib/useLibrary";
-import type { SortBy } from "../pipeline/config";
-import type { Book } from "../pipeline/types";
-import { NeedsAttention } from "./NeedsAttention";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { type RefObject, useEffect, useState } from "react";
+import { NeedsAttention } from "@/components/NeedsAttention";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from "@/components/ui/select";
+import { isDark, setDark, subscribeTheme } from "@/lib/theme";
+import type { QueueProgress } from "@/lib/useLibrary";
+import type { SortBy } from "@/pipeline/config";
+import type { Book } from "@/pipeline/types";
 
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [
   { value: "author", label: "Author A–Z" },
@@ -80,13 +84,14 @@ export function TopBar({
 }: Props) {
   const [dark, setDarkState] = useState(isDark);
 
+  useEffect(() => subscribeTheme(setDarkState), []);
+
   function toggleDark() {
     setDark(!dark);
-    setDarkState(!dark);
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
+    <header className="border-b bg-background/90 backdrop-blur">
       <div className="flex h-14 w-full items-center gap-3 px-4">
         <div className="relative w-full min-w-0 max-w-md">
           <Search

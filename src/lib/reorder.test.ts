@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { moveId } from "./reorder";
+import { moveId } from "@/lib/reorder";
 
 describe("moveId", () => {
   it("lands after the target when moving right", () => {

@@ -1,10 +1,11 @@
 import { RotateCcw, X } from "lucide-react";
 import type { ReactNode } from "react";
-import { formatDate, reasonLabel } from "../lib/format";
-import { basename } from "../pipeline/paths";
-import type { Book } from "../pipeline/types";
-import { Button } from "./ui/button";
-import { PopoverTitle } from "./ui/popover";
+import { Button } from "@/components/ui/button";
+import { PopoverTitle } from "@/components/ui/popover";
+import { POPOVER_LABEL } from "@/components/ui/typography";
+import { formatDate, reasonLabel } from "@/lib/format";
+import { basename } from "@/pipeline/paths";
+import type { Book } from "@/pipeline/types";
 
 type Props = {
   flagged: Book[];
@@ -34,9 +35,7 @@ export function NeedsAttention({
   return (
     <>
       <div className="border-b px-3 py-2">
-        <PopoverTitle className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Needs attention
-        </PopoverTitle>
+        <PopoverTitle className={POPOVER_LABEL}>Needs attention</PopoverTitle>
       </div>
 
       {flagged.length > 0 && (

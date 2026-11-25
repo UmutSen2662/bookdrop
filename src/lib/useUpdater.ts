@@ -1,6 +1,6 @@
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { errorMessage } from "../pipeline/errors";
+import { errorMessage } from "@/pipeline/errors";
 
 export type UpdateState =
   | { kind: "idle" }
@@ -116,15 +116,12 @@ export function useUpdater({ onError }: Options) {
     }
   }, [clearRevert]);
 
-  const checkRef = useRef(runCheck);
-  checkRef.current = runCheck;
-
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void checkRef.current(true);
+      void runCheck(true);
     }, LAUNCH_CHECK_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [runCheck]);
 
   return { state, checkForUpdates, install };
 }

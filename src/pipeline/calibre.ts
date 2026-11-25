@@ -4,10 +4,10 @@
  * directory wins, then PATH, then the default install location.
  */
 
-import { errorMessage } from "./errors";
-import type { Host, ProcessResult } from "./host";
-import { dirname, joinPath } from "./paths";
-import type { Metadata } from "./types";
+import { errorMessage } from "@/pipeline/errors";
+import type { Host, ProcessResult } from "@/pipeline/host";
+import { dirname, joinPath } from "@/pipeline/paths";
+import type { Metadata } from "@/pipeline/types";
 
 export type CalibreInstall = {
   dir: string;

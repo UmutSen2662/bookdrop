@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { canonicalTags, parseTags, serializeTags } from "@/lib/tags";
 import { cn } from "@/lib/utils";
-import { canonicalTags, parseTags, serializeTags } from "../lib/tags";
 
 type Props = {
   /** The stored comma-separated value. */

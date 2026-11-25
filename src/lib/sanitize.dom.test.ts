@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
-import { sanitizeHtml } from "./sanitize";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 describe("sanitizeHtml (DOM)", () => {
   it("keeps the allowed formatting", () => {

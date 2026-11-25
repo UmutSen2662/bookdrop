@@ -1,22 +1,24 @@
 import { BookOpen, Pencil, Trash2, ZoomIn } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { reasonLabel } from "../lib/format";
-import { isOutsideLibrary } from "../lib/outside";
-import { sanitizeHtml } from "../lib/sanitize";
-import { canonicalTags, parseTags } from "../lib/tags";
-import { errorMessage } from "../pipeline/errors";
-import { dirname } from "../pipeline/paths";
-import { type Book, READ_STATUSES, type ReadStatus } from "../pipeline/types";
-import { BookCover } from "./BookCover";
-import { Button } from "./ui/button";
-import { ScrollArea } from "./ui/scroll-area";
+import { BookCover } from "@/components/BookCover";
+import { Button } from "@/components/ui/button";
+import { Callout } from "@/components/ui/callout";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from "@/components/ui/select";
+import { SECTION_LABEL } from "@/components/ui/typography";
+import { reasonLabel } from "@/lib/format";
+import { isOutsideLibrary } from "@/lib/outside";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { canonicalTags, parseTags } from "@/lib/tags";
+import { errorMessage } from "@/pipeline/errors";
+import { dirname } from "@/pipeline/paths";
+import { type Book, READ_STATUSES, type ReadStatus } from "@/pipeline/types";
 
 type Props = {
   book: Book | null;
@@ -216,28 +218,26 @@ export function BookPanel({
   return (
     <ScrollArea className="h-full select-text">
       <div className="p-5">
-        <div className="mx-auto w-full">
-          <button
-            type="button"
-            onClick={() => onOpenCover(book)}
-            aria-label="View cover full size"
-            className="group relative block aspect-[2/3] w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            <BookCover
-              bookId={book.id}
-              title={book.title}
-              homeDir={homeDir}
-              updatedAt={book.updatedAt}
-              alt={book.title}
+        <button
+          type="button"
+          onClick={() => onOpenCover(book)}
+          aria-label="View cover full size"
+          className="group relative block aspect-[2/3] w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <BookCover
+            bookId={book.id}
+            title={book.title}
+            homeDir={homeDir}
+            updatedAt={book.updatedAt}
+            alt={book.title}
+          />
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/25">
+            <ZoomIn
+              className="size-6 text-white opacity-0 transition group-hover:opacity-100"
+              aria-hidden
             />
-            <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/25">
-              <ZoomIn
-                className="size-6 text-white opacity-0 transition group-hover:opacity-100"
-                aria-hidden
-              />
-            </span>
-          </button>
-        </div>
+          </span>
+        </button>
 
         <h2 className="mt-4 break-words text-xl font-semibold leading-snug">
           {book.title || "Untitled"}
@@ -247,7 +247,7 @@ export function BookPanel({
         </p>
 
         {book.missing && (
-          <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <Callout className="mt-3">
             <p className="font-semibold">File missing</p>
             <p
               className="mt-1 break-all text-[11px] text-destructive/80"
@@ -275,11 +275,11 @@ export function BookPanel({
                 Recheck
               </Button>
             </div>
-          </div>
+          </Callout>
         )}
 
         {outside && (
-          <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+          <Callout tone="warning" className="mt-3">
             <p className="font-semibold">Outside library folder</p>
             <p
               className="mt-1 break-all text-[11px] text-amber-800/80 dark:text-amber-200/80"
@@ -300,15 +300,15 @@ export function BookPanel({
                 Open folder
               </Button>
             </div>
-          </div>
+          </Callout>
         )}
 
         {book.status === "needs_review" && (
-          <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+          <Callout tone="warning" className="mt-4">
             Needs review
             {book.flagReason ? ` · ${reasonLabel(book.flagReason)}` : ""}. Edit
             the fields or remove the book.
-          </p>
+          </Callout>
         )}
 
         <div className="mt-4 flex items-center gap-2">
@@ -369,10 +369,7 @@ export function BookPanel({
 
         <div className="mt-3">
           <div className="flex items-baseline justify-between gap-3">
-            <label
-              htmlFor={`book-notes-${book.id}`}
-              className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
-            >
+            <label htmlFor={`book-notes-${book.id}`} className={SECTION_LABEL}>
               Notes
             </label>
             <span className="text-[11px] text-muted-foreground">
@@ -414,12 +411,10 @@ export function BookPanel({
         </div>
 
         <div className="mt-4">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Description
-          </h3>
+          <h3 className={SECTION_LABEL}>Description</h3>
           {description ? (
             <div
-              className="mt-2 space-y-2 break-words text-sm leading-relaxed text-foreground [&_a]:text-foreground [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_em]:italic [&_ol]:list-decimal [&_ol]:pl-5 [&_p:first-child]:mt-0 [&_p]:mt-2 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5"
+              className="mt-2 space-y-2 break-words text-sm leading-relaxed [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
               dangerouslySetInnerHTML={{ __html: description }}
             />
           ) : (
@@ -431,9 +426,7 @@ export function BookPanel({
 
         {tags.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Tags
-            </h3>
+            <h3 className={SECTION_LABEL}>Tags</h3>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {tags.map((tag) => (
                 <span

@@ -6,7 +6,7 @@
  * once after parsing: calibre double-escapes them in `--to-opf` output.
  */
 import { DOMParser, type Element as XmlElement } from "@xmldom/xmldom";
-import { basename, stripExtension } from "./paths";
+import { basename, stripExtension } from "@/pipeline/paths";
 import {
   CANDIDATE_FIELDS,
   type CandidateField,
@@ -15,7 +15,7 @@ import {
   emptyCandidates,
   type Metadata,
   type Status,
-} from "./types";
+} from "@/pipeline/types";
 
 const DC_NS = "http://purl.org/dc/elements/1.1/";
 const OPF_NS = "http://www.idpf.org/2007/opf";
@@ -163,7 +163,7 @@ export function normalizeIsbn(value: string): string | undefined {
   return /^(?:\d{9}[\dX]|\d{13})$/u.test(digits) ? digits : undefined;
 }
 
-function isRealDate(year: number, month: number, day: number): boolean {
+export function isRealDate(year: number, month: number, day: number): boolean {
   const date = new Date(Date.UTC(year, month - 1, day));
   return (
     date.getUTCFullYear() === year &&

@@ -1,15 +1,15 @@
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { htmlToPlainText } from "@/lib/description";
+import { sourceLabel } from "@/lib/format";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { cn } from "@/lib/utils";
-import { htmlToPlainText } from "../lib/description";
-import { sourceLabel } from "../lib/format";
-import { sanitizeHtml } from "../lib/sanitize";
 import type {
   CandidateField,
   CandidateSource,
   FieldCandidate,
-} from "../pipeline/types";
-import { Input } from "./ui/input";
+} from "@/pipeline/types";
 
 type Option = {
   value: string;
@@ -144,7 +144,7 @@ export function FieldPicker({
                 </span>
                 {html ? (
                   <div
-                    className="mt-1 max-h-24 overflow-hidden text-sm leading-relaxed text-foreground/90 [&_a]:underline [&_em]:italic [&_p:first-child]:mt-0 [&_p]:mt-1 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-4"
+                    className="mt-1 max-h-24 overflow-hidden text-sm leading-relaxed text-foreground/90 [&_a]:underline [&_p:first-child]:mt-0 [&_p]:mt-1 [&_ul]:list-disc [&_ul]:pl-4"
                     dangerouslySetInnerHTML={{
                       __html: sanitizeHtml(option.value),
                     }}

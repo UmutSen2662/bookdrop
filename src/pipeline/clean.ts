@@ -1,15 +1,9 @@
 /**
- * Join paragraphs that a PDF conversion split mid-sentence.
+ * Join paragraphs that a PDF conversion split mid-sentence. Only EPUBs this
+ * pipeline produced are cleaned; dropped publisher EPUBs are never touched.
  *
- * Scope: only EPUBs this pipeline produced from another format. Dropped
- * publisher EPUBs are never cleaned.
- *
- * Pure function over bytes: no filesystem, no Tauri, no Node APIs. The zip is
- * read and written with fflate and the XHTML with @xmldom/xmldom, so the same
- * code runs in the app and under Bun.
- *
- * `clean.test.ts` pins the join rules; a change there is a behavior change, not
- * a refactor.
+ * Pure function over bytes (fflate + @xmldom/xmldom), so the app and the Bun
+ * scripts run the same code. `clean.test.ts` pins the join rules.
  */
 
 import {
@@ -20,7 +14,7 @@ import {
   type Element as XmlElement,
 } from "@xmldom/xmldom";
 import { unzipSync, zipSync } from "fflate";
-import { errorMessage } from "./errors";
+import { errorMessage } from "@/pipeline/errors";
 
 const XHTML_NS = "http://www.w3.org/1999/xhtml";
 const NCX_NS = "http://www.daisy.org/z3986/2005/ncx/";

@@ -6,12 +6,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { LAYOUT } from "../lib/layout";
-import { moveId } from "../lib/reorder";
-import type { PendingIngest, ScrollRequest } from "../lib/useLibrary";
-import type { Book } from "../pipeline/types";
-import { BookCard } from "./BookCard";
-import { Button } from "./ui/button";
+import { BookCard } from "@/components/BookCard";
+import { Button } from "@/components/ui/button";
+import { SECTION_LABEL } from "@/components/ui/typography";
+import { LAYOUT } from "@/lib/layout";
+import { moveId } from "@/lib/reorder";
+import type { PendingIngest, ScrollRequest } from "@/lib/useLibrary";
+import type { Book } from "@/pipeline/types";
 
 type Props = {
   books: Book[];
@@ -182,6 +183,29 @@ export function BookGrid({
       ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [lastPendingKey]);
 
+  function renderCard(book: Book) {
+    return (
+      <BookCard
+        key={book.id}
+        book={book}
+        selected={selectedId === book.id}
+        homeDir={homeDir}
+        libraryDir={libraryDir}
+        onSelect={onSelect}
+        onTogglePin={onTogglePin}
+        onOpen={onOpen}
+        drag={
+          book.pinned && canReorder
+            ? {
+                dragging: draggedId === book.id,
+                onPointerDown: (event) => startPointerDrag(event, book),
+              }
+            : undefined
+        }
+      />
+    );
+  }
+
   if (books.length === 0 && pending.length === 0) {
     if (hasQuery || hasFilter) {
       return (
@@ -243,31 +267,8 @@ export function BookGrid({
 
       {pinned.length > 0 && (
         <section>
-          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Pinned
-          </h2>
-          <div style={GRID}>
-            {pinned.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                selected={selectedId === book.id}
-                homeDir={homeDir}
-                libraryDir={libraryDir}
-                onSelect={onSelect}
-                onTogglePin={onTogglePin}
-                onOpen={onOpen}
-                drag={
-                  canReorder
-                    ? {
-                        dragging: draggedId === book.id,
-                        onPointerDown: (event) => startPointerDrag(event, book),
-                      }
-                    : undefined
-                }
-              />
-            ))}
-          </div>
+          <h2 className={`${SECTION_LABEL} mb-3`}>Pinned</h2>
+          <div style={GRID}>{pinned.map(renderCard)}</div>
         </section>
       )}
 
@@ -277,20 +278,7 @@ export function BookGrid({
 
       {rest.length > 0 && (
         <section>
-          <div style={GRID}>
-            {rest.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                selected={selectedId === book.id}
-                homeDir={homeDir}
-                libraryDir={libraryDir}
-                onSelect={onSelect}
-                onTogglePin={onTogglePin}
-                onOpen={onOpen}
-              />
-            ))}
-          </div>
+          <div style={GRID}>{rest.map(renderCard)}</div>
         </section>
       )}
     </div>

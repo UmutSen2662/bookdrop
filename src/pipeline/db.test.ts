@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { BookStore, type Sql, toSqlxPlaceholders } from "./db";
-import { openTestSql } from "./test-sql";
-import { emptyCandidates, type IngestOutcome } from "./types";
+import { BookStore, type Sql, toSqlxPlaceholders } from "@/pipeline/db";
+import { openTestSql } from "@/pipeline/test-sql";
+import { emptyCandidates, type IngestOutcome } from "@/pipeline/types";
 
 function outcome(overrides: Partial<IngestOutcome> = {}): IngestOutcome {
   return {

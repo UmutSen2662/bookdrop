@@ -4,7 +4,7 @@
  * so "quindl" and "drives cr" both work. `author:`, `title:`, `series:`, and
  * `tag:` narrow a token.
  */
-import type { Book } from "../pipeline/types";
+import type { Book } from "@/pipeline/types";
 
 export type QueryToken = {
   field: "author" | "title" | "series" | "tag" | null;

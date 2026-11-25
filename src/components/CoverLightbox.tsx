@@ -1,11 +1,11 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { initials } from "../lib/format";
-import { joinPath } from "../pipeline/paths";
-import type { Book } from "../pipeline/types";
-import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { initials } from "@/lib/format";
+import { joinPath } from "@/pipeline/paths";
+import type { Book } from "@/pipeline/types";
 
 type Props = {
   book: Book;

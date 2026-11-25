@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { Toast } from "@/lib/useLibrary";
 import { cn } from "@/lib/utils";
-import type { Toast } from "../lib/useLibrary";
-import { Button } from "./ui/button";
 
 type Props = {
   toasts: Toast[];

@@ -4,7 +4,7 @@
  * ones the Bun and Tauri adapters use.
  */
 import { DatabaseSync } from "node:sqlite";
-import type { Sql, SqlResult, SqlValue } from "./db";
+import type { Sql, SqlResult, SqlValue } from "@/pipeline/db";
 
 export function openTestSql(): Sql {
   const db = new DatabaseSync(":memory:");
@@ -13,7 +13,6 @@ export function openTestSql(): Sql {
     async execute(sql, params: SqlValue[] = []): Promise<SqlResult> {
       const result = db.prepare(sql).run(...params);
       return {
-        rowsAffected: Number(result.changes),
         lastInsertId:
           result.lastInsertRowid === undefined
             ? null

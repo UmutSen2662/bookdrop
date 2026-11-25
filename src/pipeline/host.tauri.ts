@@ -7,18 +7,12 @@
  * the right direction for large payloads.
  */
 import { invoke } from "@tauri-apps/api/core";
-import type { FileStat, Host, HttpResult, ProcessResult } from "./host";
-
-type RawFileStat = {
-  size: number;
-  mtimeMs: number;
-  isDirectory: boolean;
-};
-
-type RawHttpResult = {
-  status: number;
-  contentType: string;
-};
+import type {
+  FileStat,
+  Host,
+  HttpResult,
+  ProcessResult,
+} from "@/pipeline/host";
 
 const BASE64_CHUNK = 0x8000;
 
@@ -74,7 +68,7 @@ export function createTauriHost(): Host {
     },
 
     async stat(path): Promise<FileStat | null> {
-      const raw = await invoke<RawFileStat | null>("stat_path", { path });
+      const raw = await invoke<FileStat | null>("stat_path", { path });
       if (!raw) return null;
       return {
         size: Number(raw.size),
@@ -96,7 +90,7 @@ export function createTauriHost(): Host {
     },
 
     async httpGet(url, destination, timeoutMs): Promise<HttpResult> {
-      return invoke<RawHttpResult>("http_get", {
+      return invoke<HttpResult>("http_get", {
         url,
         destination,
         timeoutMs,

@@ -3,29 +3,51 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Loader2, RefreshCw, RotateCcw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BookGrid } from "./components/BookGrid";
-import { BookPanel } from "./components/BookPanel";
-import { BookSheet } from "./components/BookSheet";
-import { CoverLightbox } from "./components/CoverLightbox";
-import { FirstRun } from "./components/FirstRun";
-import { Footer } from "./components/Footer";
-import { RemoveDialog } from "./components/RemoveDialog";
-import { SettingsDialog } from "./components/SettingsDialog";
-import { Toasts } from "./components/Toasts";
-import { TopBar } from "./components/TopBar";
-import { Button } from "./components/ui/button";
-import { ScrollArea } from "./components/ui/scroll-area";
-import { LAYOUT, WIDE_BREAKPOINT } from "./lib/layout";
-import { CALIBRE_DOWNLOAD_URL } from "./lib/links";
-import { isOutsideLibrary, normalizedFolder } from "./lib/outside";
-import { bookMatches, parseQuery } from "./lib/search";
-import { sortBooks } from "./lib/sort";
-import { parseTags } from "./lib/tags";
-import { useLibrary } from "./lib/useLibrary";
-import { useMediaQuery } from "./lib/useMediaQuery";
-import { useOpds } from "./lib/useOpds";
-import { dirname } from "./pipeline/paths";
-import type { Book } from "./pipeline/types";
+import { BookGrid } from "@/components/BookGrid";
+import { BookPanel } from "@/components/BookPanel";
+import { BookSheet } from "@/components/BookSheet";
+import { CoverLightbox } from "@/components/CoverLightbox";
+import { FirstRun } from "@/components/FirstRun";
+import { Footer } from "@/components/Footer";
+import { RemoveDialog } from "@/components/RemoveDialog";
+import { SettingsDialog } from "@/components/SettingsDialog";
+import { Toasts } from "@/components/Toasts";
+import { TopBar } from "@/components/TopBar";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { LAYOUT, WIDE_BREAKPOINT } from "@/lib/layout";
+import { CALIBRE_DOWNLOAD_URL } from "@/lib/links";
+import { isOutsideLibrary, normalizedFolder } from "@/lib/outside";
+import { bookMatches, parseQuery } from "@/lib/search";
+import { sortBooks } from "@/lib/sort";
+import { parseTags } from "@/lib/tags";
+import { useLibrary } from "@/lib/useLibrary";
+import { useMediaQuery } from "@/lib/useMediaQuery";
+import { useOpds } from "@/lib/useOpds";
+import { dirname } from "@/pipeline/paths";
+import type { Book } from "@/pipeline/types";
+
+function isTextField(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.tagName === "INPUT" ||
+      target.tagName === "TEXTAREA" ||
+      target.tagName === "SELECT" ||
+      target.isContentEditable)
+  );
+}
+
+function distinctSorted(values: Array<string | null | undefined>): string[] {
+  const seen = new Map<string, string>();
+  for (const value of values) {
+    if (!value) continue;
+    const key = value.toLocaleLowerCase("en-US");
+    if (!seen.has(key)) seen.set(key, value);
+  }
+  return [...seen.values()].sort((left, right) =>
+    left.localeCompare(right, "en-US", { sensitivity: "base" }),
+  );
+}
 
 function App() {
   const [query, setQuery] = useState("");
@@ -69,13 +91,7 @@ function App() {
       // A sheet or dialog owns the keyboard while it is open.
       if (editing || settingsOpen || removingBook || coverViewBook) return;
 
-      const target = event.target as HTMLElement | null;
-      const typing =
-        !!target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.tagName === "SELECT" ||
-          target.isContentEditable);
+      const typing = isTextField(event.target);
 
       if (
         (event.key === "/" && !typing) ||
@@ -94,7 +110,7 @@ function App() {
         }
         // Escape clears the search or selection, but a text field such as the
         // notes box keeps its own Escape.
-        if (typing && target !== searchRef.current) return;
+        if (typing && event.target !== searchRef.current) return;
         if (query) {
           setQuery("");
         } else if (library.selectedId !== null) {
@@ -248,30 +264,15 @@ function App() {
 
   // The library is the best source of spelling for tags and series names;
   // reusing an existing value is what keeps them from fragmenting.
-  const tagSuggestions = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const book of library.books) {
-      for (const tag of parseTags(book.tags)) {
-        const key = tag.toLocaleLowerCase("en-US");
-        if (!seen.has(key)) seen.set(key, tag);
-      }
-    }
-    return [...seen.values()].sort((left, right) =>
-      left.localeCompare(right, "en-US", { sensitivity: "base" }),
-    );
-  }, [library.books]);
+  const tagSuggestions = useMemo(
+    () => distinctSorted(library.books.flatMap((book) => parseTags(book.tags))),
+    [library.books],
+  );
 
-  const seriesSuggestions = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const book of library.books) {
-      if (!book.series) continue;
-      const key = book.series.toLocaleLowerCase("en-US");
-      if (!seen.has(key)) seen.set(key, book.series);
-    }
-    return [...seen.values()].sort((left, right) =>
-      left.localeCompare(right, "en-US", { sensitivity: "base" }),
-    );
-  }, [library.books]);
+  const seriesSuggestions = useMemo(
+    () => distinctSorted(library.books.map((book) => book.series)),
+    [library.books],
+  );
 
   const seriesTotals = useMemo(() => {
     const counts = new Map<string, number>();
@@ -302,16 +303,7 @@ function App() {
         return;
       }
 
-      const target = event.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.tagName === "SELECT" ||
-          target.isContentEditable)
-      ) {
-        return;
-      }
+      if (isTextField(event.target)) return;
       if (filtered.length === 0) return;
 
       const cards = Array.from(
@@ -464,6 +456,19 @@ function App() {
   if (!config) {
     return null;
   }
+
+  const panelProps = {
+    homeDir: config.homeDir,
+    libraryDir,
+    seriesTotal: selectedSeriesTotal,
+    onEdit: () => setEditing(true),
+    onRemove: setRemovingBook,
+    onOpenCover: setCoverViewBook,
+    onOpen: (book: Book) => void library.openBook(book),
+    onOpenFolder: (book: Book) => void library.openBookFolder(book),
+    onRecheck: (book: Book) => void library.recheckBook(book),
+    onSaveReading: library.saveBookReading,
+  };
 
   return (
     <div
@@ -683,16 +688,7 @@ function App() {
             <BookPanel
               key={selectedBook?.id ?? "empty"}
               book={selectedBook}
-              homeDir={config.homeDir}
-              libraryDir={libraryDir}
-              seriesTotal={selectedSeriesTotal}
-              onEdit={() => setEditing(true)}
-              onRemove={(book) => setRemovingBook(book)}
-              onOpenCover={(book) => setCoverViewBook(book)}
-              onOpen={(book) => void library.openBook(book)}
-              onOpenFolder={(book) => void library.openBookFolder(book)}
-              onRecheck={(book) => void library.recheckBook(book)}
-              onSaveReading={library.saveBookReading}
+              {...panelProps}
             />
           </aside>
         )}
@@ -711,16 +707,7 @@ function App() {
             <BookPanel
               key={selectedBook.id}
               book={selectedBook}
-              homeDir={config.homeDir}
-              libraryDir={libraryDir}
-              seriesTotal={selectedSeriesTotal}
-              onEdit={() => setEditing(true)}
-              onRemove={(book) => setRemovingBook(book)}
-              onOpenCover={(book) => setCoverViewBook(book)}
-              onOpen={(book) => void library.openBook(book)}
-              onOpenFolder={(book) => void library.openBookFolder(book)}
-              onRecheck={(book) => void library.recheckBook(book)}
-              onSaveReading={library.saveBookReading}
+              {...panelProps}
             />
           </aside>
         </div>

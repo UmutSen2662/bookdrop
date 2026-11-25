@@ -6,7 +6,7 @@ import {
   normalizeDate,
   parseOpf,
   stripFilenameJunk,
-} from "./metadata";
+} from "@/pipeline/metadata";
 
 describe("looksDerivedFromFilename", () => {
   it("treats an exact filename stem as derived", () => {

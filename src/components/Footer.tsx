@@ -1,15 +1,16 @@
-import { cn } from "@/lib/utils";
-import { useAppVersion } from "../lib/useAppVersion";
-import type { ShareController } from "../lib/useOpds";
-import { type UpdateState, useUpdater } from "../lib/useUpdater";
-import { ShareButton } from "./ShareMenu";
-import { Button } from "./ui/button";
+import { ShareButton } from "@/components/ShareMenu";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTitle,
   PopoverTrigger,
-} from "./ui/popover";
+} from "@/components/ui/popover";
+import { POPOVER_LABEL } from "@/components/ui/typography";
+import { useAppVersion } from "@/lib/useAppVersion";
+import type { ShareController } from "@/lib/useOpds";
+import { type UpdateState, useUpdater } from "@/lib/useUpdater";
+import { cn } from "@/lib/utils";
 
 type Props = {
   /** Startup notices that do not belong in a blocking banner. */
@@ -82,7 +83,7 @@ export function Footer({ notices, share, onUpdateError }: Props) {
               className="w-[24rem] max-w-[calc(100vw-2rem)] gap-0 p-0"
             >
               <div className="border-b px-3 py-2">
-                <PopoverTitle className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                <PopoverTitle className={POPOVER_LABEL}>
                   Startup notices
                 </PopoverTitle>
               </div>

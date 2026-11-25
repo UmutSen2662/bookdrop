@@ -1,8 +1,8 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
+import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { initials } from "../lib/format";
-import { joinPath } from "../pipeline/paths";
+import { joinPath } from "@/pipeline/paths";
 
 type Props = {
   bookId: number;

@@ -1,8 +1,8 @@
 import { X, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
 
 const FRAME_WIDTH = 300;
 const FRAME_HEIGHT = 450;
@@ -153,9 +153,7 @@ export function CoverCrop({ imageUrl, onCancel, onApply }: Props) {
     >
       <DialogContent showCloseButton={false} size="md">
         <div className="flex items-center justify-between">
-          <DialogTitle className="text-base font-semibold">
-            Crop cover
-          </DialogTitle>
+          <DialogTitle>Crop cover</DialogTitle>
           <Button
             variant="ghost"
             size="icon-sm"

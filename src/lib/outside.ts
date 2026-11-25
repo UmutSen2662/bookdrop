@@ -3,8 +3,8 @@
  * folder the app no longer scans. This is derived UI state, not a database
  * flag, so switching the folder back clears it immediately.
  */
-import { dirname, normalizedFolder } from "../pipeline/paths";
-import type { Book } from "../pipeline/types";
+import { dirname, normalizedFolder } from "@/pipeline/paths";
+import type { Book } from "@/pipeline/types";
 
 export { normalizedFolder };
 

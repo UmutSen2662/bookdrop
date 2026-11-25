@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOutsideLibrary, normalizedFolder } from "./outside";
+import { isOutsideLibrary, normalizedFolder } from "@/lib/outside";
 
 describe("normalizedFolder", () => {
   it("makes separators, casing, and trailing slashes comparable", () => {

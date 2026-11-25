@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { FakeHost, jsonResponse } from "../test-host";
-import { BOOK_SOURCES, runSources, selectSources } from ".";
-import { itunesSource } from "./itunes";
-import { openLibrarySource } from "./openlibrary";
-import type { BookSource, SourceQuery } from "./types";
+import { BOOK_SOURCES, runSources, selectSources } from "@/pipeline/sources";
+import { itunesSource } from "@/pipeline/sources/itunes";
+import { openLibrarySource } from "@/pipeline/sources/openlibrary";
+import type { BookSource, SourceQuery } from "@/pipeline/sources/types";
+import { FakeHost, jsonResponse } from "@/pipeline/test-host";
 
 const QUERY = { title: "She Drives Me Crazy", authors: "Kelly Quindlen" };
 
