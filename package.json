@@ -16,6 +16,7 @@
     "lint:fix": "biome check --write",
     "format": "biome format --write",
     "bump": "bun scripts/bump.ts",
+    "prune": "bun scripts/prune.ts",
     "checksums": "bun scripts/checksums.ts",
     "latest-json": "bun scripts/latest-json.ts"
   },

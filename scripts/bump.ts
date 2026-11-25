@@ -8,6 +8,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
+import { prune } from "./prune";
 
 const root = process.cwd();
 const next = process.argv[2];
@@ -59,3 +60,6 @@ for (const { file, pattern, replace } of edits) {
   const previous = matches[0][0].match(/\d+\.\d+\.\d+/u)?.[0];
   console.log(`${relative(root, path)}: ${previous} -> ${next}`);
 }
+
+// Each version gets its own Cargo unit dirs, so drop the old ones now.
+prune();

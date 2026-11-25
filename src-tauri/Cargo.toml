@@ -12,7 +12,9 @@ edition = "2024"
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "bookdrop_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+# Desktop only: staticlib/cdylib exist for mobile targets and roughly triple
+# the per-rebuild codegen and I/O cost.
+crate-type = ["rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -28,7 +30,12 @@ tauri-plugin-dialog = "2.8.4"
 tauri-plugin-updater = "2"
 sha2 = "0.11.1"
 base64 = "0.22"
-image = "0.25.10"
+# Default formats minus AVIF (ravif/rav1e) and EXR, which dominate build time
+# and are not used for covers.
+image = { version = "0.25.10", default-features = false, features = [
+  "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "png", "pnm", "qoi", "tga",
+  "tiff", "webp", "rayon",
+] }
 # Direct cover downloads. rustls: no OpenSSL needed on Windows.
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 tauri-plugin-single-instance = "2"
@@ -42,10 +49,12 @@ if-addrs = "0.15"
 [dev-dependencies]
 http-body-util = "0.1"
 
-# Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+# Thin LTO with a few codegen units builds several times faster than fat LTO
+# with one unit; the size and runtime difference is negligible for this app.
+# See https://tauri.app/concept/size/#cargo-configuration
 [profile.release]
-codegen-units = 1
-lto = true
+codegen-units = 4
+lto = "thin"
 opt-level = 3
 panic = "abort"
 strip = true
