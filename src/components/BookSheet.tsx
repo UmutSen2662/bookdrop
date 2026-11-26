@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { SECTION_LABEL } from "@/components/ui/typography";
 import { textToParagraphHtml } from "@/lib/description";
 import { sourceLabel } from "@/lib/format";
@@ -554,262 +555,265 @@ export function BookSheet({
           </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto p-5 md:grid-cols-[220px_1fr]">
-          <div className="self-start">
-            <h3 className={SECTION_LABEL}>Cover</h3>
-            <div className="mt-2 flex flex-col gap-2">
-              <CoverOption
-                label="In the file"
-                size={
-                  coverSize
-                    ? `${coverSize.width}×${coverSize.height}`
-                    : undefined
-                }
-                selected={cover.kind === "current"}
-                onSelect={() => setCover({ kind: "current" })}
-              >
-                <BookCover
-                  bookId={book.id}
-                  title={book.title}
-                  homeDir={homeDir}
-                  updatedAt={book.updatedAt}
-                />
-              </CoverOption>
-
-              {coverCandidates.map((candidate) => (
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="grid gap-6 p-5 md:grid-cols-[220px_1fr]">
+            <div className="self-start">
+              <h3 className={SECTION_LABEL}>Cover</h3>
+              <div className="mt-2 flex flex-col gap-2">
                 <CoverOption
-                  key={candidate.path}
-                  label={sourceLabel(candidate.source)}
-                  size={`${candidate.width}×${candidate.height}`}
-                  selected={
-                    cover.kind === "candidate" && cover.path === candidate.path
+                  label="In the file"
+                  size={
+                    coverSize
+                      ? `${coverSize.width}×${coverSize.height}`
+                      : undefined
                   }
-                  onSelect={() =>
-                    setCover({ kind: "candidate", path: candidate.path })
-                  }
-                  onRemove={() => removeCoverCandidate(candidate.path)}
+                  selected={cover.kind === "current"}
+                  onSelect={() => setCover({ kind: "current" })}
                 >
-                  <CoverImage
-                    src={convertFileSrc(joinPath(homeDir, candidate.path))}
+                  <BookCover
+                    bookId={book.id}
+                    title={book.title}
+                    homeDir={homeDir}
+                    updatedAt={book.updatedAt}
                   />
                 </CoverOption>
-              ))}
 
-              {upload && (
-                <CoverOption
-                  label="Your upload"
-                  size="1200×1800"
-                  selected={cover.kind === "upload"}
-                  onSelect={() => setCover({ kind: "upload" })}
-                  onRemove={removeUpload}
-                >
-                  <CoverImage src={upload.url} />
-                </CoverOption>
-              )}
-            </div>
+                {coverCandidates.map((candidate) => (
+                  <CoverOption
+                    key={candidate.path}
+                    label={sourceLabel(candidate.source)}
+                    size={`${candidate.width}×${candidate.height}`}
+                    selected={
+                      cover.kind === "candidate" &&
+                      cover.path === candidate.path
+                    }
+                    onSelect={() =>
+                      setCover({ kind: "candidate", path: candidate.path })
+                    }
+                    onRemove={() => removeCoverCandidate(candidate.path)}
+                  >
+                    <CoverImage
+                      src={convertFileSrc(joinPath(homeDir, candidate.path))}
+                    />
+                  </CoverOption>
+                ))}
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2 w-full"
-              onClick={() => void pickUpload()}
-              disabled={saving}
-            >
-              <Upload aria-hidden />
-              Upload…
-            </Button>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              JPEG, PNG, or WebP. The crop is exported at 1200×1800.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            {book.missing && (
-              <Callout>
-                The library file is missing. Restore it and use Recheck in the
-                book panel before saving metadata or cover changes. Reading
-                status and notes are edited in the panel.
-              </Callout>
-            )}
-            {refreshNote && <Callout tone="muted">{refreshNote}</Callout>}
-            <FieldPicker
-              field="title"
-              label={FIELD_LABELS.title}
-              current={book.title}
-              candidates={candidates.fields.title}
-              value={fields.title}
-              onChange={(value) => setField("title", value)}
-              onDelete={(candidate) => removeCandidate("title", candidate)}
-            />
-            <FieldPicker
-              field="authors"
-              label={FIELD_LABELS.authors}
-              current={book.authors}
-              candidates={candidates.fields.authors}
-              value={fields.authors}
-              onChange={(value) => setField("authors", value)}
-              onDelete={(candidate) => removeCandidate("authors", candidate)}
-            />
-
-            <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
-              <div>
-                <label
-                  htmlFor="book-series"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  {FIELD_LABELS.series}
-                </label>
-                <Input
-                  id="book-series"
-                  list="book-series-options"
-                  value={fields.series}
-                  onChange={(event) => setField("series", event.target.value)}
-                  placeholder="No series"
-                  autoComplete="off"
-                  spellCheck={false}
-                  className="mt-1.5"
-                />
-                <datalist id="book-series-options">
-                  {seriesSuggestions.map((series) => (
-                    <option key={series} value={series} />
-                  ))}
-                </datalist>
-                {seriesAlternatives.length > 0 && (
-                  <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1">
-                    {seriesAlternatives.map((candidate) => (
-                      <button
-                        key={`${candidate.source}:${candidate.value}`}
-                        type="button"
-                        onClick={() => setField("series", candidate.value)}
-                        className="max-w-full truncate text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                      >
-                        Use “{candidate.value}” from{" "}
-                        {candidate.source === "file"
-                          ? "the file"
-                          : sourceLabel(candidate.source)}
-                      </button>
-                    ))}
-                  </div>
+                {upload && (
+                  <CoverOption
+                    label="Your upload"
+                    size="1200×1800"
+                    selected={cover.kind === "upload"}
+                    onSelect={() => setCover({ kind: "upload" })}
+                    onRemove={removeUpload}
+                  >
+                    <CoverImage src={upload.url} />
+                  </CoverOption>
                 )}
               </div>
-              <div>
-                <label
-                  htmlFor="book-series-index"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  {FIELD_LABELS.seriesIndex}
-                </label>
-                <Input
-                  id="book-series-index"
-                  inputMode="decimal"
-                  value={fields.seriesIndex}
-                  onChange={(event) =>
-                    setField("seriesIndex", event.target.value)
-                  }
-                  placeholder="1"
-                  autoComplete="off"
-                  className="mt-1.5"
-                />
-              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                onClick={() => void pickUpload()}
+                disabled={saving}
+              >
+                <Upload aria-hidden />
+                Upload…
+              </Button>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                JPEG, PNG, or WebP. The crop is exported at 1200×1800.
+              </p>
             </div>
 
-            <FieldPicker
-              field="description"
-              label={FIELD_LABELS.description}
-              current={book.description ?? ""}
-              candidates={candidates.fields.description}
-              value={fields.description}
-              onChange={(value) => setField("description", value)}
-              onModeChange={setCustomDescription}
-              onDelete={(candidate) =>
-                removeCandidate("description", candidate)
-              }
-              multiline
-              html
-            />
+            <div className="space-y-4">
+              {book.missing && (
+                <Callout>
+                  The library file is missing. Restore it and use Recheck in the
+                  book panel before saving metadata or cover changes. Reading
+                  status and notes are edited in the panel.
+                </Callout>
+              )}
+              {refreshNote && <Callout tone="muted">{refreshNote}</Callout>}
+              <FieldPicker
+                field="title"
+                label={FIELD_LABELS.title}
+                current={book.title}
+                candidates={candidates.fields.title}
+                value={fields.title}
+                onChange={(value) => setField("title", value)}
+                onDelete={(candidate) => removeCandidate("title", candidate)}
+              />
+              <FieldPicker
+                field="authors"
+                label={FIELD_LABELS.authors}
+                current={book.authors}
+                candidates={candidates.fields.authors}
+                value={fields.authors}
+                onChange={(value) => setField("authors", value)}
+                onDelete={(candidate) => removeCandidate("authors", candidate)}
+              />
 
-            <div>
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="text-xs font-medium text-muted-foreground">
-                  {FIELD_LABELS.tags}
-                </span>
-                <span className="text-[11px] text-muted-foreground">
-                  Enter or comma adds a tag
-                </span>
-              </div>
-              <div className="mt-1.5">
-                <TagEditor
-                  value={fields.tags}
-                  suggestions={tagSuggestions}
-                  onChange={(value) => setField("tags", value)}
-                  disabled={saving}
-                />
-              </div>
-
-              {tagAlternatives.length > 0 && (
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] text-muted-foreground">
-                    Other sources
-                  </span>
-                  {tagAlternatives.map((candidate) => {
-                    const count = parseTags(candidate.value).length;
-                    return (
-                      <span
-                        key={`${candidate.source}:${candidate.value}`}
-                        className="inline-flex items-center gap-1 rounded-lg border bg-muted/30 py-0.5 pl-2 pr-1 text-[11px]"
-                      >
+              <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
+                <div>
+                  <label
+                    htmlFor="book-series"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {FIELD_LABELS.series}
+                  </label>
+                  <Input
+                    id="book-series"
+                    list="book-series-options"
+                    value={fields.series}
+                    onChange={(event) => setField("series", event.target.value)}
+                    placeholder="No series"
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="mt-1.5"
+                  />
+                  <datalist id="book-series-options">
+                    {seriesSuggestions.map((series) => (
+                      <option key={series} value={series} />
+                    ))}
+                  </datalist>
+                  {seriesAlternatives.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1">
+                      {seriesAlternatives.map((candidate) => (
                         <button
+                          key={`${candidate.source}:${candidate.value}`}
                           type="button"
-                          onClick={() =>
-                            setField(
-                              "tags",
-                              serializeTags(parseTags(candidate.value)),
-                            )
-                          }
-                          className="hover:underline"
+                          onClick={() => setField("series", candidate.value)}
+                          className="max-w-full truncate text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
                         >
-                          Use {count} from{" "}
+                          Use “{candidate.value}” from{" "}
                           {candidate.source === "file"
                             ? "the file"
                             : sourceLabel(candidate.source)}
                         </button>
-                        <button
-                          type="button"
-                          aria-label="Remove this tag alternative"
-                          title="Remove this alternative"
-                          onClick={() => removeCandidate("tags", candidate)}
-                          className="rounded p-0.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-                        >
-                          <X className="size-3" aria-hidden />
-                        </button>
-                      </span>
-                    );
-                  })}
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+                <div>
+                  <label
+                    htmlFor="book-series-index"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {FIELD_LABELS.seriesIndex}
+                  </label>
+                  <Input
+                    id="book-series-index"
+                    inputMode="decimal"
+                    value={fields.seriesIndex}
+                    onChange={(event) =>
+                      setField("seriesIndex", event.target.value)
+                    }
+                    placeholder="1"
+                    autoComplete="off"
+                    className="mt-1.5"
+                  />
+                </div>
+              </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {SHORT_FIELDS.map((field) => (
-                <FieldPicker
-                  key={field}
-                  field={field}
-                  label={FIELD_LABELS[field]}
-                  current={book[field] ?? ""}
-                  candidates={candidates.fields[field]}
-                  value={fields[field]}
-                  onChange={(value) => setField(field, value)}
-                  onDelete={(candidate) => removeCandidate(field, candidate)}
-                />
-              ))}
+              <FieldPicker
+                field="description"
+                label={FIELD_LABELS.description}
+                current={book.description ?? ""}
+                candidates={candidates.fields.description}
+                value={fields.description}
+                onChange={(value) => setField("description", value)}
+                onModeChange={setCustomDescription}
+                onDelete={(candidate) =>
+                  removeCandidate("description", candidate)
+                }
+                multiline
+                html
+              />
+
+              <div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {FIELD_LABELS.tags}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Enter or comma adds a tag
+                  </span>
+                </div>
+                <div className="mt-1.5">
+                  <TagEditor
+                    value={fields.tags}
+                    suggestions={tagSuggestions}
+                    onChange={(value) => setField("tags", value)}
+                    disabled={saving}
+                  />
+                </div>
+
+                {tagAlternatives.length > 0 && (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] text-muted-foreground">
+                      Other sources
+                    </span>
+                    {tagAlternatives.map((candidate) => {
+                      const count = parseTags(candidate.value).length;
+                      return (
+                        <span
+                          key={`${candidate.source}:${candidate.value}`}
+                          className="inline-flex items-center gap-1 rounded-lg border bg-muted/30 py-0.5 pl-2 pr-1 text-[11px]"
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setField(
+                                "tags",
+                                serializeTags(parseTags(candidate.value)),
+                              )
+                            }
+                            className="hover:underline"
+                          >
+                            Use {count} from{" "}
+                            {candidate.source === "file"
+                              ? "the file"
+                              : sourceLabel(candidate.source)}
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Remove this tag alternative"
+                            title="Remove this alternative"
+                            onClick={() => removeCandidate("tags", candidate)}
+                            className="rounded p-0.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                          >
+                            <X className="size-3" aria-hidden />
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {SHORT_FIELDS.map((field) => (
+                  <FieldPicker
+                    key={field}
+                    field={field}
+                    label={FIELD_LABELS[field]}
+                    current={book[field] ?? ""}
+                    candidates={candidates.fields[field]}
+                    value={fields[field]}
+                    onChange={(value) => setField(field, value)}
+                    onDelete={(candidate) => removeCandidate(field, candidate)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollArea>
 
         <div className="border-t px-5 py-3">
           {error && (
-            <Callout className="mb-3 max-h-24 overflow-y-auto whitespace-pre-wrap">
-              {error}
+            <Callout className="mb-3 whitespace-pre-wrap">
+              <ScrollArea className="max-h-20">{error}</ScrollArea>
             </Callout>
           )}
           <div className="flex items-center justify-between gap-3">

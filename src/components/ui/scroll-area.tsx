@@ -9,12 +9,15 @@ function ScrollArea({
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      className={cn("relative", className)}
+      className={cn("relative flex flex-col", className)}
       {...props}
     >
+      {/* A flex item rather than `size-full`: percentage heights do not
+          resolve when the root is only constrained by `max-height`, which
+          lets the viewport grow with its content instead of scrolling. */}
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        className="size-full rounded-[inherit] outline-none transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
+        className="w-full min-h-0 flex-auto rounded-[inherit] outline-none transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>

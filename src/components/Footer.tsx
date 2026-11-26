@@ -6,6 +6,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { POPOVER_LABEL } from "@/components/ui/typography";
 import { useAppVersion } from "@/lib/useAppVersion";
 import type { ShareController } from "@/lib/useOpds";
@@ -87,16 +88,18 @@ export function Footer({ notices, share, onUpdateError }: Props) {
                   Startup notices
                 </PopoverTitle>
               </div>
-              <ul className="max-h-[40vh] divide-y overflow-y-auto">
-                {notices.map((notice) => (
-                  <li
-                    key={notice}
-                    className="whitespace-pre-wrap px-3 py-2 text-xs leading-relaxed"
-                  >
-                    {notice}
-                  </li>
-                ))}
-              </ul>
+              <ScrollArea className="max-h-[40vh]">
+                <ul className="divide-y">
+                  {notices.map((notice) => (
+                    <li
+                      key={notice}
+                      className="whitespace-pre-wrap px-3 py-2 text-xs leading-relaxed"
+                    >
+                      {notice}
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
             </PopoverContent>
           </Popover>
         )}

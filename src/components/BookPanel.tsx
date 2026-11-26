@@ -455,9 +455,11 @@ export function BookPanel({
               Import details
             </summary>
             {book.error && (
-              <p className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap break-words text-destructive/90">
-                {book.error}
-              </p>
+              <ScrollArea className="mt-2 max-h-40">
+                <p className="whitespace-pre-wrap break-words text-destructive/90">
+                  {book.error}
+                </p>
+              </ScrollArea>
             )}
             {book.notes && (
               <p className="mt-2 whitespace-pre-wrap break-words">
