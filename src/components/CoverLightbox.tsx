@@ -3,6 +3,7 @@ import { Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { demoCoverUrl, isDemoMode } from "@/demo/mode";
 import { initials } from "@/lib/format";
 import { joinPath } from "@/pipeline/paths";
 import type { Book } from "@/pipeline/types";
@@ -15,9 +16,12 @@ type Props = {
 };
 
 export function CoverLightbox({ book, homeDir, onEnsureFull, onClose }: Props) {
-  const thumbnail = `${convertFileSrc(
-    joinPath(homeDir, "covers", `${book.id}.jpg`),
-  )}?v=${encodeURIComponent(book.updatedAt)}`;
+  const demoSource = isDemoMode() ? demoCoverUrl(book.id) : null;
+  const thumbnail =
+    demoSource ??
+    `${convertFileSrc(
+      joinPath(homeDir, "covers", `${book.id}.jpg`),
+    )}?v=${encodeURIComponent(book.updatedAt)}`;
   const [src, setSrc] = useState(thumbnail);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -28,18 +32,21 @@ export function CoverLightbox({ book, homeDir, onEnsureFull, onClose }: Props) {
     setLoaded(false);
     setFailed(false);
 
-    void onEnsureFull(book)
-      .then((path) => {
-        if (cancelled || !path) return;
-        setLoaded(false);
-        setSrc(`${convertFileSrc(path)}?v=${Date.now()}`);
-      })
-      .catch(() => undefined);
+    // Demo covers are already full size and bundled with the app.
+    if (!demoSource) {
+      void onEnsureFull(book)
+        .then((path) => {
+          if (cancelled || !path) return;
+          setLoaded(false);
+          setSrc(`${convertFileSrc(path)}?v=${Date.now()}`);
+        })
+        .catch(() => undefined);
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [book, thumbnail, onEnsureFull]);
+  }, [book, thumbnail, demoSource, onEnsureFull]);
 
   return (
     <Dialog

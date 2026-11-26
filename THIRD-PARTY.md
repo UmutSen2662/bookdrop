@@ -29,6 +29,11 @@ The Rust dependencies declared in `src-tauri/Cargo.toml` — Tauri, Serde,
 dependencies under `src-tauri/Cargo.lock` carry their own MIT, Apache-2.0, BSD,
 ISC, or Unicode licenses; their texts are available from the crates.io packages.
 
+## Demo assets
+
+The development demo library in `src/demo/` uses cover images from Project
+Gutenberg editions of public-domain works.
+
 ## Not included
 
 - **calibre** is not bundled, linked, or redistributed. Bookdrop invokes its

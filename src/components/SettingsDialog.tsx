@@ -38,6 +38,8 @@ type Props = {
   host: Host;
   install: CalibreInstall | null;
   books: Book[];
+  /** Demo mode opens the dialog but never touches the OS. */
+  demo?: boolean;
   onClose: () => void;
   onSave: (patch: Partial<Config>) => Promise<void>;
   onRecheck: () => Promise<void>;
@@ -103,6 +105,7 @@ export function SettingsDialog({
   host,
   install,
   books,
+  demo = false,
   onClose,
   onSave,
   onRecheck,
@@ -199,6 +202,7 @@ export function SettingsDialog({
   }
 
   async function pickFolder(title: string): Promise<string | null> {
+    if (demo) return null;
     const selected = await open({ directory: true, multiple: false, title });
     return typeof selected === "string" ? selected : null;
   }
@@ -314,6 +318,10 @@ export function SettingsDialog({
   async function exportNotes() {
     setError(null);
     setExportMessage(null);
+    if (demo) {
+      setExportMessage("Exporting is disabled in demo mode.");
+      return;
+    }
     try {
       const exportedAt = new Date();
       const path = await chooseSavePath({
@@ -338,6 +346,7 @@ export function SettingsDialog({
   }
 
   async function openDownload() {
+    if (demo) return;
     setError(null);
     try {
       await openUrl(CALIBRE_DOWNLOAD_URL);
@@ -347,6 +356,7 @@ export function SettingsDialog({
   }
 
   async function openFolder(path: string) {
+    if (demo) return;
     setError(null);
     try {
       await invoke("open_path", { path });

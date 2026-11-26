@@ -1,5 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isDemoMode } from "@/demo/mode";
 import { type ShareBook, shareEntries } from "@/lib/opds";
 import { errorMessage } from "@/pipeline/errors";
 import type { Book } from "@/pipeline/types";
@@ -34,6 +35,7 @@ export type ShareController = {
  */
 export function useOpds(books: Book[], homeDir: string): ShareController {
   const supported = isTauri();
+  const demo = isDemoMode();
   const [state, setState] = useState<ShareState>({ kind: "stopped" });
   const entries = useMemo(() => shareEntries(books, homeDir), [books, homeDir]);
 
@@ -56,39 +58,57 @@ export function useOpds(books: Book[], homeDir: string): ShareController {
   // behind: adopt whatever the Rust side already has. The same call keeps the
   // adapter list honest after a network change.
   const refresh = useCallback(() => {
-    if (!supported) return;
+    if (!supported || demo) return;
     invoke<WireStatus>("share_status")
       .then(apply)
       .catch(() => undefined);
-  }, [supported, apply]);
+  }, [supported, demo, apply]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
+  // The first render happens before demo mode is detected. Never inherit a
+  // real sharing session into the demo once it is.
+  useEffect(() => {
+    if (demo) setState({ kind: "stopped" });
+  }, [demo]);
+
   const start = useCallback(() => {
     if (!supported) return;
+    if (demo) {
+      setState({
+        kind: "running",
+        urls: [{ url: "http://192.168.1.42:8099", name: "Wi-Fi" }],
+        count: entriesRef.current.length,
+      });
+      return;
+    }
     setState({ kind: "starting" });
     invoke<WireStatus>("start_sharing", { books: entriesRef.current })
       .then(apply)
       .catch((error: unknown) =>
         setState({ kind: "failed", message: errorMessage(error) }),
       );
-  }, [supported, apply]);
+  }, [supported, demo, apply]);
 
   const stop = useCallback(() => {
     if (!supported) return;
+    if (demo) {
+      setState({ kind: "stopped" });
+      return;
+    }
     invoke<WireStatus>("stop_sharing")
       .then(apply)
       .catch(() => setState({ kind: "stopped" }));
-  }, [supported, apply]);
+  }, [supported, demo, apply]);
 
   // New drops, edits, and removals reach the reader without a restart. The
   // server is the only writer of its copy, so this is a cheap replacement.
   useEffect(() => {
-    if (state.kind !== "running") return;
+    if (!supported || demo || state.kind !== "running") return;
     invoke("set_share_books", { books: entries }).catch(() => undefined);
-  }, [entries, state.kind]);
+  }, [entries, state.kind, supported, demo]);
 
   // Keep the visible count tied to the current snapshot: books dropped or
   // removed while sharing change it without a restart.

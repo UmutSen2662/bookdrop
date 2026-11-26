@@ -134,7 +134,7 @@ function App() {
   // Explorer drag-and-drop arrives through Tauri's native event, not the
   // webview's HTML5 `drop` (which never sees a file path).
   useEffect(() => {
-    if (!isTauri()) return;
+    if (!isTauri() || library.demo) return;
     let unlisten: (() => void) | undefined;
     let disposed = false;
 
@@ -162,7 +162,7 @@ function App() {
       disposed = true;
       unlisten?.();
     };
-  }, []);
+  }, [library.demo]);
 
   // Returning from Explorer after deleting or restoring a file should update
   // the grid without a restart. This is a stat-only pass.
@@ -475,7 +475,7 @@ function App() {
       className="flex h-screen overflow-hidden bg-background text-foreground"
       onDragOver={(event) => {
         event.preventDefault();
-        if (isTauri()) setDragging(true);
+        if (isTauri() && !library.demo) setDragging(true);
       }}
       onDragLeave={(event) => {
         if (event.currentTarget === event.target) setDragging(false);
@@ -542,7 +542,7 @@ function App() {
             queue={library.queue}
           />
 
-          {!library.install && (
+          {!library.demo && !library.install && (
             <div className="border-b bg-amber-500/10 px-4 py-2">
               <div className="flex w-full items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
                 <span className="min-w-0 flex-1">
@@ -719,6 +719,7 @@ function App() {
           book={selectedBook}
           homeDir={config.homeDir}
           host={library.host}
+          demo={library.demo}
           tagSuggestions={tagSuggestions}
           seriesSuggestions={seriesSuggestions}
           onClose={() => setEditing(false)}
@@ -759,6 +760,7 @@ function App() {
           host={library.host}
           install={library.install}
           books={library.books}
+          demo={library.demo}
           onClose={() => setSettingsOpen(false)}
           onSave={library.saveSettings}
           onRecheck={library.recheckCalibre}

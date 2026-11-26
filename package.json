@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "demo": "BOOKDROP_DEMO=1 tauri dev",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",

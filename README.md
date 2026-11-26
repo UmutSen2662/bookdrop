@@ -121,6 +121,12 @@ bun install
 bun run tauri dev
 ```
 
+For screenshots or demos, `bun run demo` opens the app with an in-memory
+library of ten public-domain books. It never reads your real config, database,
+or library folder, and it is only available in development builds. Settings,
+the edit sheet, and the share popover all open for screenshots; actions that
+would touch files or start a server are inert.
+
 To build an installer, checksums, and the updater manifest, set the signing key
 in the same window that runs the build:
 

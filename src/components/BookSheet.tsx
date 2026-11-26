@@ -45,6 +45,8 @@ type Props = {
   book: Book;
   homeDir: string;
   host: Host;
+  /** Demo mode opens the sheet but never touches the OS. */
+  demo?: boolean;
   /** Tags already used in the library, for the chip editor. */
   tagSuggestions: string[];
   /** Series names already used in the library, for autocomplete. */
@@ -158,6 +160,7 @@ export function BookSheet({
   book,
   homeDir,
   host,
+  demo = false,
   tagSuggestions,
   seriesSuggestions,
   onClose,
@@ -289,6 +292,7 @@ export function BookSheet({
   }
 
   async function pickUpload() {
+    if (demo) return;
     setError(null);
     const selected = await open({
       multiple: false,

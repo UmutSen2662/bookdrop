@@ -6,6 +6,9 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DEMO_CALIBRE_DIR, DEMO_CALIBRE_VERSION } from "@/demo/constants";
+import { createDemoHost } from "@/demo/host";
+import { demoCoverSize, isDemoMode, loadDemoLibrary } from "@/demo/mode";
 import { reasonLabel } from "@/lib/format";
 import { type CalibreInstall, findCalibre } from "@/pipeline/calibre";
 import { type Config, loadConfig, saveConfig } from "@/pipeline/config";
@@ -36,7 +39,13 @@ import {
   joinPath,
   toForwardSlashes,
 } from "@/pipeline/paths";
-import type { Book, Candidates, Metadata, ReadStatus } from "@/pipeline/types";
+import {
+  type Book,
+  type Candidates,
+  emptyCandidates,
+  type Metadata,
+  type ReadStatus,
+} from "@/pipeline/types";
 
 type LibraryPhase = "loading" | "first-run" | "ready" | "error";
 
@@ -69,6 +78,7 @@ export type ScrollRequest = {
 };
 
 const ENV_NAMES = [
+  "BOOKDROP_DEMO",
   "BOOKDROP_HOME",
   "BOOKDROP_LIBRARY",
   "BOOKDROP_ARCHIVE",
@@ -218,6 +228,24 @@ export function useLibrary(options: Options) {
         }
         await primeEnv(ENV_NAMES);
         const nextHost = createTauriHost();
+        // Demo mode is a development-only in-memory library. It never opens
+        // config.json, the real database, or the library folder.
+        if (import.meta.env.DEV && nextHost.env("BOOKDROP_DEMO") === "1") {
+          const demo = await loadDemoLibrary();
+          const demoHost = createDemoHost();
+          hostRef.current = demoHost;
+          setHost(demoHost);
+          installRef.current = {
+            dir: DEMO_CALIBRE_DIR,
+            version: DEMO_CALIBRE_VERSION,
+          };
+          setInstall(installRef.current);
+          configRef.current = demo.config;
+          setConfig(demo.config);
+          setBooks(demo.books);
+          setPhase("ready");
+          return;
+        }
         hostRef.current = nextHost;
         setHost(nextHost);
         const nextConfig = await loadConfig(nextHost);
@@ -237,6 +265,10 @@ export function useLibrary(options: Options) {
 
   const saveSettings = useCallback(
     async (patch: Partial<Config>) => {
+      if (isDemoMode()) {
+        setConfig((current) => (current ? { ...current, ...patch } : current));
+        return;
+      }
       const activeHost = hostRef.current;
       const current = configRef.current;
       if (!activeHost || !current) return;
@@ -340,6 +372,7 @@ export function useLibrary(options: Options) {
   }, [saveSettings]);
 
   const recheckCalibre = useCallback(async () => {
+    if (isDemoMode()) return;
     const activeHost = hostRef.current;
     const current = configRef.current;
     if (!activeHost || !current) return;
@@ -413,6 +446,14 @@ export function useLibrary(options: Options) {
 
   const ingestPaths = useCallback(
     async (paths: string[]) => {
+      if (isDemoMode()) {
+        pushToast({
+          title: "Demo library",
+          detail: "Dropping books is disabled in demo mode.",
+          tone: "info",
+        });
+        return;
+      }
       const activeHost = hostRef.current;
       const activeConfig = configRef.current;
       const activeStore = storeRef.current;
@@ -575,6 +616,14 @@ export function useLibrary(options: Options) {
 
   const togglePin = useCallback(
     async (book: Book) => {
+      if (isDemoMode()) {
+        setBooks((current) =>
+          current.map((entry) =>
+            entry.id === book.id ? { ...entry, pinned: !entry.pinned } : entry,
+          ),
+        );
+        return;
+      }
       const active = storeRef.current;
       if (!active) return;
       await active.setPinned(book.id, !book.pinned);
@@ -585,6 +634,20 @@ export function useLibrary(options: Options) {
 
   const reorderPinned = useCallback(
     async (ids: number[]) => {
+      if (isDemoMode()) {
+        const order = new Map(ids.map((id, index) => [id, index]));
+        setBooks((current) =>
+          [...current].sort((left, right) => {
+            const a = order.get(left.id);
+            const b = order.get(right.id);
+            if (a !== undefined && b !== undefined) return a - b;
+            if (a !== undefined) return -1;
+            if (b !== undefined) return 1;
+            return 0;
+          }),
+        );
+        return;
+      }
       const active = storeRef.current;
       if (!active) return;
       try {
@@ -603,6 +666,14 @@ export function useLibrary(options: Options) {
 
   const openBook = useCallback(
     async (book: Book) => {
+      if (isDemoMode()) {
+        pushToast({
+          title: "Demo library",
+          detail: "Books cannot be opened in demo mode.",
+          tone: "info",
+        });
+        return;
+      }
       if (!book.libraryPath) return;
       const activeHost = hostRef.current;
       const activeStore = storeRef.current;
@@ -636,6 +707,7 @@ export function useLibrary(options: Options) {
   /** The panel's Recheck: the user says the file is back at its old path. */
   const recheckBook = useCallback(
     async (book: Book) => {
+      if (isDemoMode()) return null;
       const activeHost = hostRef.current;
       const activeStore = storeRef.current;
       if (!activeHost || !activeStore || !book.libraryPath) return null;
@@ -661,6 +733,14 @@ export function useLibrary(options: Options) {
 
   const openBookFolder = useCallback(
     async (book: Book) => {
+      if (isDemoMode()) {
+        pushToast({
+          title: "Demo library",
+          detail: "Folders are not available in demo mode.",
+          tone: "info",
+        });
+        return;
+      }
       if (!book.libraryPath) return;
       try {
         await invoke("open_path", { path: dirname(book.libraryPath) });
@@ -680,6 +760,7 @@ export function useLibrary(options: Options) {
    * restored in Explorer shows up without a restart.
    */
   const refreshMissing = useCallback(async () => {
+    if (isDemoMode()) return;
     const activeHost = hostRef.current;
     const activeConfig = configRef.current;
     const activeStore = storeRef.current;
@@ -706,6 +787,32 @@ export function useLibrary(options: Options) {
       coverPath?: string,
       candidates?: Candidates,
     ) => {
+      if (isDemoMode()) {
+        const updated: Book = {
+          ...book,
+          title: metadata.title,
+          authors: metadata.authors,
+          authorSort: metadata.authorSort ?? metadata.authors,
+          titleSort: metadata.titleSort ?? metadata.title,
+          isbn: metadata.isbn ?? null,
+          description: metadata.description ?? null,
+          publisher: metadata.publisher ?? null,
+          published: metadata.published ?? null,
+          language: metadata.language ?? null,
+          tags: metadata.tags ?? null,
+          series: metadata.series ?? null,
+          seriesIndex: metadata.seriesIndex ?? null,
+          candidates: candidates ?? book.candidates,
+          status: "ok",
+          flagReason: null,
+          error: null,
+          updatedAt: new Date().toISOString(),
+        };
+        setBooks((current) =>
+          current.map((entry) => (entry.id === book.id ? updated : entry)),
+        );
+        return updated;
+      }
       const activeHost = hostRef.current;
       const activeConfig = configRef.current;
       const activeStore = storeRef.current;
@@ -736,6 +843,7 @@ export function useLibrary(options: Options) {
   );
 
   const loadFullCover = useCallback(async (book: Book) => {
+    if (isDemoMode()) return null;
     const activeHost = hostRef.current;
     const activeConfig = configRef.current;
     if (!activeHost || !activeConfig) return null;
@@ -748,6 +856,14 @@ export function useLibrary(options: Options) {
   }, []);
 
   const refreshBookMetadata = useCallback(async (book: Book) => {
+    if (isDemoMode()) {
+      return {
+        metadata: { title: "", authors: "" },
+        candidates: emptyCandidates(),
+        found: false,
+        notes: [],
+      };
+    }
     const activeHost = hostRef.current;
     const activeConfig = configRef.current;
     const activeInstall = installRef.current;
@@ -764,6 +880,7 @@ export function useLibrary(options: Options) {
   }, []);
 
   const readCoverSize = useCallback(async (book: Book) => {
+    if (isDemoMode()) return demoCoverSize(book.id);
     const activeHost = hostRef.current;
     const activeConfig = configRef.current;
     if (!activeHost || !activeConfig) return null;
@@ -776,6 +893,9 @@ export function useLibrary(options: Options) {
   }, []);
 
   const planRenames = useCallback(async (template: string) => {
+    if (isDemoMode()) {
+      return { moves: [], unchanged: 0, problems: [] };
+    }
     const activeHost = hostRef.current;
     const activeConfig = configRef.current;
     const activeStore = storeRef.current;
@@ -787,6 +907,9 @@ export function useLibrary(options: Options) {
 
   const renameLibrary = useCallback(
     async (plan: RenamePlan) => {
+      if (isDemoMode()) {
+        return { renamed: 0, problems: [] };
+      }
       const activeHost = hostRef.current;
       const activeConfig = configRef.current;
       const activeStore = storeRef.current;
@@ -832,6 +955,18 @@ export function useLibrary(options: Options) {
       book: Book,
       reading: { status: ReadStatus; notes: string | null },
     ) => {
+      if (isDemoMode()) {
+        const updated: Book = {
+          ...book,
+          readStatus: reading.status,
+          personalNotes: reading.notes,
+          updatedAt: new Date().toISOString(),
+        };
+        setBooks((current) =>
+          current.map((entry) => (entry.id === book.id ? updated : entry)),
+        );
+        return updated;
+      }
       const activeStore = storeRef.current;
       if (!activeStore) throw new Error("The library is not open.");
       const updated = await saveReadingOnDisk(activeStore, book.id, reading);
@@ -843,6 +978,11 @@ export function useLibrary(options: Options) {
 
   const remove = useCallback(
     async (book: Book, removal: RemoveOptions = {}) => {
+      if (isDemoMode()) {
+        setBooks((current) => current.filter((entry) => entry.id !== book.id));
+        if (selectedId === book.id) setSelectedId(null);
+        return;
+      }
       const activeHost = hostRef.current;
       const activeConfig = configRef.current;
       const active = storeRef.current;
@@ -856,6 +996,10 @@ export function useLibrary(options: Options) {
 
   const dismiss = useCallback(
     async (book: Book) => {
+      if (isDemoMode()) {
+        setBooks((current) => current.filter((entry) => entry.id !== book.id));
+        return;
+      }
       const active = storeRef.current;
       if (!active) return;
       await active.remove(book.id);
@@ -867,6 +1011,7 @@ export function useLibrary(options: Options) {
   return {
     phase,
     error,
+    demo: isDemoMode(),
     host,
     config,
     install,
