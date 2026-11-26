@@ -12,7 +12,6 @@ import aliceCover from "@/demo/covers/alice.jpg";
 import artOfWarCover from "@/demo/covers/art-of-war.jpg";
 import frankensteinCover from "@/demo/covers/frankenstein.jpg";
 import jekyllCover from "@/demo/covers/jekyll.jpg";
-import metamorphosisCover from "@/demo/covers/metamorphosis.jpg";
 import prideCover from "@/demo/covers/pride-and-prejudice.jpg";
 import sherlockCover from "@/demo/covers/sherlock.jpg";
 import timeMachineCover from "@/demo/covers/time-machine.jpg";
@@ -50,6 +49,8 @@ type DemoInput = {
   pinnedOrder?: number;
   addedAt: string;
   readStatus?: ReadStatus;
+  needsReview?: boolean;
+  hasCover?: boolean;
 };
 
 function demoBook(input: DemoInput): Book {
@@ -63,7 +64,7 @@ function demoBook(input: DemoInput): Book {
     sourcePath: null,
     archivedPath: null,
     libraryPath: `${DEMO_LIBRARY_DIR}/${input.file}`,
-    hasCover: true,
+    hasCover: input.hasCover ?? true,
     title: input.title,
     authors: input.authors,
     authorSort: input.authorSort,
@@ -79,8 +80,8 @@ function demoBook(input: DemoInput): Book {
     readStatus: input.readStatus ?? "unread",
     personalNotes: null,
     missing: false,
-    status: "ok",
-    flagReason: null,
+    status: input.needsReview ? "needs_review" : "ok",
+    flagReason: input.needsReview ? "metadata_missing" : null,
     candidates: emptyCandidates(),
     notes: null,
     error: null,
@@ -194,6 +195,7 @@ export const DEMO_BOOKS: Book[] = [
     publisher: "Kurt Wolff Verlag",
     published: "1915-01-01",
     tags: "Absurdist fiction, Psychological fiction, Family -- Fiction, Insects",
+    hasCover: false,
     addedAt: "2026-11-24T08:50:00.000Z",
   }),
   demoBook({
@@ -236,6 +238,7 @@ export const DEMO_BOOKS: Book[] = [
     publisher: "William Heinemann",
     published: "1895-01-01",
     tags: "Science fiction, Time travel, Dystopian fiction, England -- Fiction",
+    needsReview: true,
     addedAt: "2026-11-26T07:45:00.000Z",
   }),
 ];
@@ -247,7 +250,6 @@ export const DEMO_COVERS: Record<number, string> = {
   4: aliceCover,
   5: sherlockCover,
   6: yellowWallpaperCover,
-  7: metamorphosisCover,
   8: jekyllCover,
   9: artOfWarCover,
   10: timeMachineCover,
@@ -263,7 +265,6 @@ export const DEMO_COVER_SIZES: Record<
   4: { width: 800, height: 1104 },
   5: { width: 668, height: 1000 },
   6: { width: 688, height: 1000 },
-  7: { width: 1576, height: 2366 },
   8: { width: 500, height: 862 },
   9: { width: 1024, height: 1536 },
   10: { width: 650, height: 1000 },

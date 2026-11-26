@@ -379,7 +379,7 @@ export function useLibrary(options: Options) {
     if (ingestRunningRef.current || renameRunningRef.current) {
       pushToast({
         title: "Wait for the current job to finish",
-        detail: "Re-checking calibre rescans the library.",
+        detail: "Rechecking calibre rescans the library.",
         tone: "info",
       });
       return;

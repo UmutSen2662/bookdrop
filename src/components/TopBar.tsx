@@ -1,5 +1,4 @@
 import {
-  AlertTriangle,
   ArrowUpDown,
   Loader2,
   Moon,
@@ -10,11 +9,14 @@ import {
 } from "lucide-react";
 import { type RefObject, useEffect, useState } from "react";
 import { NeedsAttention } from "@/components/NeedsAttention";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
+  PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
@@ -24,8 +26,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EYEBROW } from "@/components/ui/typography";
 import { isDark, setDark, subscribeTheme } from "@/lib/theme";
 import type { QueueProgress } from "@/lib/useLibrary";
+import { cn } from "@/lib/utils";
 import type { SortBy } from "@/pipeline/config";
 import type { Book } from "@/pipeline/types";
 
@@ -90,9 +94,13 @@ export function TopBar({
     setDark(!dark);
   }
 
+  const reviewActive = needsReviewOnly || missingCoverOnly;
+  const showReview =
+    reviewActive || needsReviewCount > 0 || missingCoverCount > 0;
+
   return (
     <header className="border-b bg-background/90 backdrop-blur">
-      <div className="flex h-14 w-full items-center gap-3 px-4">
+      <div className="flex h-14 w-full items-center gap-3 px-5">
         <div className="relative w-full min-w-0 max-w-md">
           <Search
             className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -104,7 +112,7 @@ export function TopBar({
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Search title or author…"
             aria-label="Search the library"
-            className="h-9 pl-8 pr-8"
+            className="h-8 pl-8 pr-8"
             autoComplete="off"
             spellCheck={false}
           />
@@ -116,7 +124,7 @@ export function TopBar({
                 onQueryChange("");
                 searchRef.current?.focus();
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <X className="size-4" aria-hidden />
             </button>
@@ -136,7 +144,7 @@ export function TopBar({
             <SelectTrigger
               aria-label="Sort the library"
               title="Sort the library"
-              className="h-9 pl-8"
+              className="h-8 pl-8"
             >
               <SelectValue />
             </SelectTrigger>
@@ -158,45 +166,24 @@ export function TopBar({
             </span>
           )}
 
-          {(needsReviewCount > 0 || needsReviewOnly) && (
-            <Button
-              variant={needsReviewOnly ? "default" : "outline"}
-              size="sm"
-              aria-pressed={needsReviewOnly}
-              onClick={onToggleNeedsReview}
-            >
-              Needs review
-              <span className="ml-0.5 rounded-full bg-amber-500/15 px-1.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
-                {needsReviewCount}
-              </span>
-            </Button>
-          )}
-
-          {(missingCoverCount > 0 || missingCoverOnly) && (
-            <Button
-              variant={missingCoverOnly ? "default" : "outline"}
-              size="sm"
-              aria-pressed={missingCoverOnly}
-              onClick={onToggleMissingCover}
-            >
-              Missing cover
-              <span className="ml-0.5 rounded-full bg-muted px-1.5 text-[11px] font-semibold text-muted-foreground">
-                {missingCoverCount}
-              </span>
-            </Button>
+          {showReview && (
+            <ReviewMenu
+              needsReviewCount={needsReviewCount}
+              needsReviewOnly={needsReviewOnly}
+              onToggleNeedsReview={onToggleNeedsReview}
+              missingCoverCount={missingCoverCount}
+              missingCoverOnly={missingCoverOnly}
+              onToggleMissingCover={onToggleMissingCover}
+            />
           )}
 
           {(flagged.length > 0 || missing.length > 0) && (
             <Popover open={attentionOpen} onOpenChange={onAttentionOpenChange}>
-              <PopoverTrigger render={<Button variant="outline" size="sm" />}>
-                <AlertTriangle
-                  className="text-amber-600 dark:text-amber-400"
-                  aria-hidden
-                />
+              <PopoverTrigger render={<Button variant="outline" />}>
                 Needs attention
-                <span className="ml-0.5 rounded-full bg-amber-500/15 px-1.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+                <Badge tone="warning" className="ml-0.5">
                   {flagged.length + missing.length}
-                </span>
+                </Badge>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-[22rem] gap-0 p-0">
                 <NeedsAttention
@@ -233,5 +220,110 @@ export function TopBar({
         </div>
       </div>
     </header>
+  );
+}
+
+function ReviewMenu({
+  needsReviewCount,
+  needsReviewOnly,
+  onToggleNeedsReview,
+  missingCoverCount,
+  missingCoverOnly,
+  onToggleMissingCover,
+}: {
+  needsReviewCount: number;
+  needsReviewOnly: boolean;
+  onToggleNeedsReview: () => void;
+  missingCoverCount: number;
+  missingCoverOnly: boolean;
+  onToggleMissingCover: () => void;
+}) {
+  const active = needsReviewOnly || missingCoverOnly;
+  const total = needsReviewCount + missingCoverCount;
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={<Button variant={active ? "default" : "outline"} />}
+      >
+        Review
+        <Badge tone={active ? "neutral" : "warning"} className="ml-0.5">
+          {total}
+        </Badge>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-64 gap-0 p-0">
+        <div className="border-b px-3 py-2">
+          <PopoverTitle className={EYEBROW}>Review</PopoverTitle>
+        </div>
+        <div className="p-1.5">
+          <ReviewRow
+            label="Needs review"
+            count={needsReviewCount}
+            checked={needsReviewOnly}
+            onChange={onToggleNeedsReview}
+            tone="warning"
+          />
+          <ReviewRow
+            label="Missing cover"
+            count={missingCoverCount}
+            checked={missingCoverOnly}
+            onChange={onToggleMissingCover}
+          />
+        </div>
+        {active && (
+          <div className="border-t p-1.5">
+            <Button
+              size="xs"
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => {
+                if (needsReviewOnly) onToggleNeedsReview();
+                if (missingCoverOnly) onToggleMissingCover();
+              }}
+            >
+              Clear
+            </Button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ReviewRow({
+  label,
+  count,
+  checked,
+  onChange,
+  tone = "neutral",
+}: {
+  label: string;
+  count: number;
+  checked: boolean;
+  onChange: () => void;
+  tone?: "neutral" | "warning";
+}) {
+  const disabled = count === 0 && !checked;
+  const id = `review-${label.toLowerCase().replace(/ /g, "-")}`;
+
+  return (
+    <label
+      htmlFor={id}
+      className={cn(
+        "flex items-center gap-2.5 rounded-md px-2 py-2 text-sm",
+        disabled
+          ? "cursor-not-allowed opacity-50"
+          : "cursor-pointer hover:bg-muted/50",
+      )}
+    >
+      <Checkbox
+        id={id}
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={() => onChange()}
+      />
+      <span className="flex-1">{label}</span>
+      <Badge tone={tone}>{count}</Badge>
+    </label>
   );
 }

@@ -1,4 +1,4 @@
-import { BookOpen, Loader2 } from "lucide-react";
+import { BookOpen, Loader2, SearchX } from "lucide-react";
 import {
   type CSSProperties,
   useCallback,
@@ -8,7 +8,8 @@ import {
 } from "react";
 import { BookCard } from "@/components/BookCard";
 import { Button } from "@/components/ui/button";
-import { SECTION_LABEL } from "@/components/ui/typography";
+import { EmptyState } from "@/components/ui/empty-state";
+import { EYEBROW } from "@/components/ui/typography";
 import { LAYOUT } from "@/lib/layout";
 import { moveId } from "@/lib/reorder";
 import type { PendingIngest, ScrollRequest } from "@/lib/useLibrary";
@@ -209,27 +210,36 @@ export function BookGrid({
   if (books.length === 0 && pending.length === 0) {
     if (hasQuery || hasFilter) {
       return (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-24 text-center">
-          <p className="text-sm text-muted-foreground">No books match</p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={hasFilter ? onClearFilters : onClearSearch}
-          >
-            {hasFilter ? "Clear filters" : "Clear search"}
-          </Button>
+        <div className="flex flex-1 items-center justify-center">
+          <EmptyState
+            icon={SearchX}
+            title="No books match"
+            description={
+              hasFilter
+                ? "Turn a review option off to see the rest of the library."
+                : "Try a different title or author."
+            }
+            action={
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={hasFilter ? onClearFilters : onClearSearch}
+              >
+                {hasFilter ? "Show all" : "Clear search"}
+              </Button>
+            }
+          />
         </div>
       );
     }
     return (
-      <div className="flex flex-1 items-center justify-center px-6 py-12">
-        <div className="flex w-full max-w-2xl flex-col items-center justify-center gap-3 rounded-2xl border border-dashed bg-muted/25 px-8 py-24 text-center">
-          <BookOpen className="size-8 text-muted-foreground/70" aria-hidden />
-          <p className="text-base font-medium">Drop a book anywhere</p>
-          <p className="text-sm text-muted-foreground">
-            EPUB, PDF, MOBI, AZW3, RTF, DOCX, HTML, or TXT.
-          </p>
-        </div>
+      <div className="flex flex-1 items-center justify-center py-12">
+        <EmptyState
+          variant="full"
+          icon={BookOpen}
+          title="Drop a book anywhere"
+          description="EPUB, PDF, MOBI, AZW3, RTF, DOCX, HTML, or TXT."
+        />
       </div>
     );
   }
@@ -255,7 +265,7 @@ export function BookGrid({
                     aria-hidden
                   />
                 </div>
-                <p className="mt-2 line-clamp-2 text-sm font-medium">
+                <p className="mt-1 line-clamp-2 text-sm font-medium leading-snug">
                   {entry.name}
                 </p>
                 <p className="text-xs text-muted-foreground">Preparing…</p>
@@ -267,7 +277,7 @@ export function BookGrid({
 
       {pinned.length > 0 && (
         <section>
-          <h2 className={`${SECTION_LABEL} mb-3`}>Pinned</h2>
+          <h2 className={`${EYEBROW} mb-3`}>Pinned</h2>
           <div style={GRID}>{pinned.map(renderCard)}</div>
         </section>
       )}

@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Input, Textarea } from "@/components/ui/input";
+import { EYEBROW, FIELD_LABEL } from "@/components/ui/typography";
 import { htmlToPlainText } from "@/lib/description";
 import { sourceLabel } from "@/lib/format";
 import { sanitizeHtml } from "@/lib/sanitize";
@@ -111,9 +112,7 @@ export function FieldPicker({
 
   return (
     <fieldset>
-      <legend className="text-xs font-medium text-muted-foreground">
-        {label}
-      </legend>
+      <legend className={FIELD_LABEL}>{label}</legend>
       <div className="mt-1.5 overflow-hidden rounded-lg border">
         {options.map((option) => (
           <div
@@ -132,10 +131,10 @@ export function FieldPicker({
                   setCustom(false);
                   onChange(option.value);
                 }}
-                className="mt-1 size-3.5 shrink-0 accent-foreground"
+                className="mt-0.5 size-4 shrink-0 accent-primary"
               />
               <span className="min-w-0 flex-1">
-                <span className="block text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                <span className={cn("block", EYEBROW)}>
                   {option.current
                     ? "In the file"
                     : option.source === "file"
@@ -169,7 +168,7 @@ export function FieldPicker({
                 onClick={() =>
                   onDelete({ value: option.value, source: option.source })
                 }
-                className="mt-0.5 rounded p-1 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="mt-0.5 rounded-md p-1 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <X className="size-3.5" aria-hidden />
               </button>
@@ -188,12 +187,10 @@ export function FieldPicker({
             name={field}
             checked={custom}
             onChange={enterCustom}
-            className="mt-1 size-3.5 shrink-0 accent-foreground"
+            className="mt-0.5 size-4 shrink-0 accent-primary"
           />
           <span className="min-w-0 flex-1">
-            <span className="block text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-              Custom
-            </span>
+            <span className={cn("block", EYEBROW)}>Custom</span>
             <span className="mt-0.5 block text-sm">Type my own</span>
           </span>
         </label>
@@ -201,11 +198,10 @@ export function FieldPicker({
         {custom && (
           <div className="border-t bg-background/60 p-3">
             {multiline ? (
-              <textarea
+              <Textarea
                 value={draft ?? value}
                 onChange={(event) => updateDraft(event.target.value)}
                 rows={5}
-                className="w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 placeholder={
                   html ? "First paragraph…\n\nSecond paragraph…" : undefined
                 }
@@ -217,7 +213,7 @@ export function FieldPicker({
               />
             )}
             {html && (
-              <p className="mt-1 text-[11px] text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Blank line = new paragraph. Single lines stay line breaks.
               </p>
             )}

@@ -13,7 +13,7 @@ export const LAYOUT = {
    */
   appMaxWidth: 1520,
   panelWidth: 400,
-  gridPadX: 24,
+  gridPadX: 20,
   gridGapX: 20,
   gridGapY: 28,
   /**

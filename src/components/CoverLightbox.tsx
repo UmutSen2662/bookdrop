@@ -56,9 +56,8 @@ export function CoverLightbox({ book, homeDir, onEnsureFull, onClose }: Props) {
       }}
     >
       <DialogContent
-        showCloseButton={false}
         overlayClassName="bg-black/90"
-        className="inset-0 top-0 left-0 max-w-none translate-x-0 translate-y-0 place-items-center rounded-none bg-transparent p-4 text-white shadow-none ring-0 sm:max-w-none"
+        className="inset-0 top-0 left-0 max-h-none max-w-none translate-x-0 translate-y-0 items-center justify-center rounded-none bg-transparent p-4 text-white shadow-none ring-0 sm:max-w-none"
         onClick={onClose}
       >
         <DialogTitle className="sr-only">
@@ -111,7 +110,7 @@ export function CoverLightbox({ book, homeDir, onEnsureFull, onClose }: Props) {
                     setFailed(true);
                   }
                 }}
-                className="max-h-[92vh] max-w-[92vw] rounded object-contain shadow-2xl"
+                className="max-h-[92vh] max-w-[92vw] rounded-lg object-contain shadow-2xl"
               />
             </>
           )}

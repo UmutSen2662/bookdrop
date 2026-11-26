@@ -1,7 +1,12 @@
-import { X, ZoomIn, ZoomOut } from "lucide-react";
+import { ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 const FRAME_WIDTH = 300;
@@ -151,109 +156,101 @@ export function CoverCrop({ imageUrl, onCancel, onApply }: Props) {
         if (!open) onCancel();
       }}
     >
-      <DialogContent showCloseButton={false} size="md">
-        <div className="flex items-center justify-between">
-          <DialogTitle>Crop cover</DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Cancel"
-            onClick={onCancel}
-          >
-            <X aria-hidden />
-          </Button>
-        </div>
+      <DialogContent size="md">
+        <DialogHeader title="Crop cover" onClose={onCancel} />
 
-        <div
-          ref={frameRef}
-          style={{ width: FRAME_WIDTH, height: FRAME_HEIGHT }}
-          className={cn(
-            "relative mx-auto mt-4 touch-none overflow-hidden rounded-lg border bg-muted select-none",
-            dragging ? "cursor-grabbing" : "cursor-grab",
-          )}
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-            dragRef.current = {
-              x: event.clientX,
-              y: event.clientY,
-              ox: offset.x,
-              oy: offset.y,
-            };
-            setDragging(true);
-          }}
-          onPointerMove={(event) => {
-            const drag = dragRef.current;
-            if (!drag) return;
-            setOffset(
-              clampOffset(
-                drag.ox + (event.clientX - drag.x),
-                drag.oy + (event.clientY - drag.y),
-                displayWidth,
-                displayHeight,
-              ),
-            );
-          }}
-          onPointerUp={(event) => {
-            dragRef.current = null;
-            setDragging(false);
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              event.currentTarget.releasePointerCapture(event.pointerId);
-            }
-          }}
-          onPointerCancel={() => {
-            dragRef.current = null;
-            setDragging(false);
-          }}
-        >
-          <img
-            ref={imageRef}
-            src={imageUrl}
-            alt=""
-            draggable={false}
-            onLoad={onImageLoad}
-            onError={() => setFailed(true)}
-            className="absolute max-w-none"
-            style={{
-              left: offset.x,
-              top: offset.y,
-              width: displayWidth || undefined,
-              height: displayHeight || undefined,
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+          <div
+            ref={frameRef}
+            style={{ width: FRAME_WIDTH, height: FRAME_HEIGHT }}
+            className={cn(
+              "relative mx-auto touch-none overflow-hidden rounded-lg border bg-muted select-none",
+              dragging ? "cursor-grabbing" : "cursor-grab",
+            )}
+            onPointerDown={(event) => {
+              event.currentTarget.setPointerCapture(event.pointerId);
+              dragRef.current = {
+                x: event.clientX,
+                y: event.clientY,
+                ox: offset.x,
+                oy: offset.y,
+              };
+              setDragging(true);
             }}
-          />
-          {failed && (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted px-4 text-center text-xs text-muted-foreground">
-              Could not read that image.
-            </div>
-          )}
+            onPointerMove={(event) => {
+              const drag = dragRef.current;
+              if (!drag) return;
+              setOffset(
+                clampOffset(
+                  drag.ox + (event.clientX - drag.x),
+                  drag.oy + (event.clientY - drag.y),
+                  displayWidth,
+                  displayHeight,
+                ),
+              );
+            }}
+            onPointerUp={(event) => {
+              dragRef.current = null;
+              setDragging(false);
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                event.currentTarget.releasePointerCapture(event.pointerId);
+              }
+            }}
+            onPointerCancel={() => {
+              dragRef.current = null;
+              setDragging(false);
+            }}
+          >
+            <img
+              ref={imageRef}
+              src={imageUrl}
+              alt=""
+              draggable={false}
+              onLoad={onImageLoad}
+              onError={() => setFailed(true)}
+              className="absolute max-w-none"
+              style={{
+                left: offset.x,
+                top: offset.y,
+                width: displayWidth || undefined,
+                height: displayHeight || undefined,
+              }}
+            />
+            {failed && (
+              <div className="absolute inset-0 flex items-center justify-center bg-muted px-4 text-center text-xs text-muted-foreground">
+                Could not read that image.
+              </div>
+            )}
+          </div>
+
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Drag to pan · scroll or use the slider to zoom
+          </p>
+
+          <div className="mt-3 flex items-center gap-2">
+            <ZoomOut className="size-4 text-muted-foreground" aria-hidden />
+            <input
+              type="range"
+              min={MIN_ZOOM}
+              max={MAX_ZOOM}
+              step={0.01}
+              value={zoom}
+              onChange={(event) => applyZoom(Number(event.target.value))}
+              className="h-1.5 flex-1 accent-primary"
+              aria-label="Zoom"
+            />
+            <ZoomIn className="size-4 text-muted-foreground" aria-hidden />
+          </div>
         </div>
 
-        <p className="mt-2 text-center text-[11px] text-muted-foreground">
-          Drag to pan · scroll or use the slider to zoom
-        </p>
-
-        <div className="mt-3 flex items-center gap-2">
-          <ZoomOut className="size-4 text-muted-foreground" aria-hidden />
-          <input
-            type="range"
-            min={MIN_ZOOM}
-            max={MAX_ZOOM}
-            step={0.01}
-            value={zoom}
-            onChange={(event) => applyZoom(Number(event.target.value))}
-            className="h-1.5 flex-1 accent-foreground"
-            aria-label="Zoom"
-          />
-          <ZoomIn className="size-4 text-muted-foreground" aria-hidden />
-        </div>
-
-        <div className="mt-5 flex justify-end gap-2">
+        <DialogFooter>
           <Button variant="ghost" onClick={onCancel}>
             Cancel
           </Button>
           <Button onClick={() => void exportCrop()} disabled={!size}>
             Use this crop
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

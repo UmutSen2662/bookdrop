@@ -22,16 +22,54 @@ export function reasonLabel(reason: FlagReason | null | undefined): string {
   }
 }
 
-/** Two initials for the missing-cover placeholder. */
+const LEADING_ARTICLES = new Set(["a", "an", "the"]);
+const INITIAL_CONNECTORS = new Set([
+  "a",
+  "an",
+  "and",
+  "at",
+  "by",
+  "for",
+  "from",
+  "in",
+  "into",
+  "of",
+  "on",
+  "the",
+  "to",
+  "with",
+]);
+
+/**
+ * Two initials for the missing-cover placeholder. Leading articles go, and
+ * joining words are skipped when looking for the second letter, but the first
+ * real word is always kept: "The Time Machine" -> TM, "On the Road" -> OR.
+ */
 export function initials(title: string): string {
   const words = title
     .trim()
     .split(/\s+/u)
     .filter((word) => /[\p{L}\p{N}]/u.test(word));
   if (words.length === 0) return "?";
-  const first = words[0].charAt(0);
-  const second = words.length > 1 ? words[1].charAt(0) : "";
-  return `${first}${second}`.toUpperCase();
+
+  const start =
+    words.length > 1 &&
+    LEADING_ARTICLES.has(words[0].toLocaleLowerCase("en-US"))
+      ? 1
+      : 0;
+  const first = words[start];
+  if (!first) return "?";
+
+  let second = "";
+  for (let index = start + 1; index < words.length; index++) {
+    const word = words[index];
+    if (!INITIAL_CONNECTORS.has(word.toLocaleLowerCase("en-US"))) {
+      second = word;
+      break;
+    }
+  }
+
+  return `${first.charAt(0)}${second.charAt(0)}`.toUpperCase();
 }
 
 /** File sizes for the archive summary. */

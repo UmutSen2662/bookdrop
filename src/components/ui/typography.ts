@@ -1,6 +1,6 @@
-/** Uppercase labels used above sections and inside popovers. */
-export const SECTION_LABEL =
-  "text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground";
+/** Uppercase micro-labels above sections, in popover headers, and on options. */
+export const EYEBROW =
+  "text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground";
 
-export const POPOVER_LABEL =
-  "text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground";
+/** The label above a form field. */
+export const FIELD_LABEL = "text-xs font-medium text-muted-foreground";

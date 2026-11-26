@@ -11,7 +11,7 @@ export function FirstRun({ onChoose }: Props) {
 
   return (
     <div className="flex flex-1 items-center justify-center px-6 py-12">
-      <div className="w-full max-w-lg rounded-2xl border bg-card p-8 text-card-foreground shadow-sm">
+      <div className="w-full max-w-lg rounded-2xl border bg-card p-6 text-card-foreground shadow-sm">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <LibraryBig className="size-5" aria-hidden />

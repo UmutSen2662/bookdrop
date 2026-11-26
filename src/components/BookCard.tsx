@@ -1,5 +1,6 @@
 import { GripVertical, Pin } from "lucide-react";
 import { BookCover } from "@/components/BookCover";
+import { Badge } from "@/components/ui/badge";
 import { isOutsideLibrary } from "@/lib/outside";
 import { cn } from "@/lib/utils";
 import type { Book } from "@/pipeline/types";
@@ -36,7 +37,7 @@ export function BookCard({
       id={`book-${book.id}`}
       data-book-id={book.id}
       className={cn(
-        "group relative rounded-md transition",
+        "group relative rounded-lg transition",
         selected && "ring-2 ring-ring ring-offset-2 ring-offset-background",
         drag?.dragging && "opacity-40",
       )}
@@ -49,9 +50,9 @@ export function BookCard({
           onOpen(book);
         }}
         aria-pressed={selected}
-        className="block w-full rounded-md text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="block w-full rounded-lg text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        <span className="relative block aspect-[2/3] overflow-hidden rounded-md border bg-muted shadow-sm">
+        <span className="relative block aspect-[2/3] overflow-hidden rounded-lg border bg-muted shadow-sm">
           <BookCover
             bookId={book.id}
             title={book.title}
@@ -61,33 +62,41 @@ export function BookCard({
 
           <span className="absolute left-2 top-2 flex flex-col items-start gap-1">
             {book.missing && (
-              <span
-                className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm"
+              <Badge
+                tone="danger"
+                solid
+                className="uppercase tracking-wide shadow-sm"
                 title="The library file is missing"
               >
                 file missing
-              </span>
+              </Badge>
             )}
             {book.status === "needs_review" && (
-              <span className="rounded-full bg-amber-500/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-950 shadow-sm">
+              <Badge
+                tone="warning"
+                solid
+                className="uppercase tracking-wide shadow-sm"
+              >
                 needs review
-              </span>
+              </Badge>
             )}
             {outside && (
-              <span
-                className="rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 shadow-sm ring-1 ring-amber-500/40 backdrop-blur dark:text-amber-300"
+              <Badge
+                tone="warning"
+                solid
+                className="bg-background/90 uppercase tracking-wide text-amber-700 shadow-sm ring-1 ring-amber-500/40 backdrop-blur dark:text-amber-300"
                 title="The file is in a different folder"
               >
                 outside library
-              </span>
+              </Badge>
             )}
           </span>
         </span>
 
-        <span className="mt-1 px-1 line-clamp-2 text-sm font-medium leading-snug">
+        <span className="mt-1 line-clamp-2 text-sm font-medium leading-snug">
           {book.title || "Untitled"}
         </span>
-        <span className="my-0.5 block truncate px-1 text-xs text-muted-foreground">
+        <span className="my-0.5 block truncate text-xs text-muted-foreground">
           {book.authors || "Unknown author"}
         </span>
       </button>
@@ -97,7 +106,7 @@ export function BookCard({
         aria-label={book.pinned ? "Unpin book" : "Pin book"}
         title={book.pinned ? "Unpin" : "Pin"}
         onClick={() => onTogglePin(book)}
-        className="absolute right-2 top-2 rounded-full bg-background/85 p-1.5 text-foreground/80 opacity-0 shadow-sm backdrop-blur transition hover:bg-background hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
+        className="absolute right-2 top-2 rounded-full bg-background/85 p-1.5 text-foreground/80 opacity-0 shadow-sm backdrop-blur transition hover:bg-background hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 group-hover:opacity-100 group-focus-within:opacity-100"
       >
         <Pin
           className={cn("size-3.5", book.pinned && "fill-current")}
@@ -112,7 +121,7 @@ export function BookCard({
           title="Drag to reorder"
           onPointerDown={drag.onPointerDown}
           className={cn(
-            "absolute right-2 top-10 cursor-grab touch-none rounded-full bg-background/85 p-1.5 text-foreground/80 shadow-sm backdrop-blur transition hover:bg-background hover:text-foreground active:cursor-grabbing focus-visible:opacity-100",
+            "absolute right-2 top-10 cursor-grab touch-none rounded-full bg-background/85 p-1.5 text-foreground/80 shadow-sm backdrop-blur transition hover:bg-background hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing",
             drag.dragging
               ? "opacity-100"
               : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",

@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BookCover } from "@/components/BookCover";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Textarea } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -11,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SECTION_LABEL } from "@/components/ui/typography";
+import { EYEBROW } from "@/components/ui/typography";
 import { reasonLabel } from "@/lib/format";
 import { isOutsideLibrary } from "@/lib/outside";
 import { sanitizeHtml } from "@/lib/sanitize";
@@ -200,12 +202,13 @@ export function BookPanel({
 
   if (!book) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
-        <BookOpen className="size-7 text-muted-foreground/60" aria-hidden />
-        <p className="text-sm font-medium">Select a book</p>
-        <p className="text-xs text-muted-foreground">
-          Click a card to see its cover, description, and metadata.
-        </p>
+      <div className="flex h-full items-center justify-center">
+        <EmptyState
+          icon={BookOpen}
+          title="Select a book"
+          description="Click a card to see its cover, description, and metadata."
+          className="py-0"
+        />
       </div>
     );
   }
@@ -218,28 +221,44 @@ export function BookPanel({
   return (
     <ScrollArea className="h-full select-text">
       <div className="p-5">
-        <button
-          type="button"
-          onClick={() => onOpenCover(book)}
-          aria-label="View cover full size"
-          className="group relative block aspect-[2/3] w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          <BookCover
-            bookId={book.id}
-            title={book.title}
-            homeDir={homeDir}
-            updatedAt={book.updatedAt}
-            alt={book.title}
-          />
-          <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/25">
-            <ZoomIn
-              className="size-6 text-white opacity-0 transition group-hover:opacity-100"
-              aria-hidden
+        {book.hasCover ? (
+          <button
+            type="button"
+            onClick={() => onOpenCover(book)}
+            aria-label="View cover full size"
+            className="group relative block aspect-[2/3] w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <BookCover
+              bookId={book.id}
+              title={book.title}
+              homeDir={homeDir}
+              updatedAt={book.updatedAt}
+              alt={book.title}
+              variant="panel"
             />
-          </span>
-        </button>
+            <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/25">
+              <ZoomIn
+                className="size-6 text-white opacity-0 transition group-hover:opacity-100"
+                aria-hidden
+              />
+            </span>
+          </button>
+        ) : (
+          <div className="relative block aspect-[2/3] w-full overflow-hidden rounded-lg border bg-muted shadow-sm">
+            <BookCover
+              bookId={book.id}
+              title={book.title}
+              homeDir={homeDir}
+              updatedAt={book.updatedAt}
+              variant="panel"
+            />
+          </div>
+        )}
 
-        <h2 className="mt-4 break-words text-xl font-semibold leading-snug">
+        <h2
+          id="book-panel-title"
+          className="mt-4 break-words text-xl font-semibold leading-snug"
+        >
           {book.title || "Untitled"}
         </h2>
         <p className="mt-1 break-words text-sm text-muted-foreground">
@@ -250,12 +269,12 @@ export function BookPanel({
           <Callout className="mt-3">
             <p className="font-semibold">File missing</p>
             <p
-              className="mt-1 break-all text-[11px] text-destructive/80"
+              className="mt-1 break-all text-xs text-destructive/80"
               title={book.libraryPath ?? ""}
             >
               {book.libraryPath}
             </p>
-            <p className="mt-1 text-[11px] text-destructive/80">
+            <p className="mt-1 text-xs text-destructive/80">
               Put the file back at this path, then Recheck. Opening the folder
               is a good place to start looking.
             </p>
@@ -282,12 +301,12 @@ export function BookPanel({
           <Callout tone="warning" className="mt-3">
             <p className="font-semibold">Outside library folder</p>
             <p
-              className="mt-1 break-all text-[11px] text-amber-800/80 dark:text-amber-200/80"
+              className="mt-1 break-all text-xs text-amber-800/80 dark:text-amber-200/80"
               title={book.libraryPath ?? ""}
             >
               {dirname(book.libraryPath ?? "")}
             </p>
-            <p className="mt-1 text-[11px] text-amber-800/80 dark:text-amber-200/80">
+            <p className="mt-1 text-xs text-amber-800/80 dark:text-amber-200/80">
               This book is still in another folder. Move it into the current
               library folder, or switch back in Settings.
             </p>
@@ -327,8 +346,7 @@ export function BookPanel({
           </Button>
           <Button
             size="sm"
-            variant="ghost"
-            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            variant="destructive"
             onClick={() => onRemove(book)}
           >
             <Trash2 aria-hidden />
@@ -369,14 +387,14 @@ export function BookPanel({
 
         <div className="mt-3">
           <div className="flex items-baseline justify-between gap-3">
-            <label htmlFor={`book-notes-${book.id}`} className={SECTION_LABEL}>
+            <label htmlFor={`book-notes-${book.id}`} className={EYEBROW}>
               Notes
             </label>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               Private; not written to the EPUB.
             </span>
           </div>
-          <textarea
+          <Textarea
             id={`book-notes-${book.id}`}
             value={notes}
             onChange={(event) => {
@@ -390,18 +408,18 @@ export function BookPanel({
             }}
             rows={4}
             placeholder="Quotes, thoughts, where you left off…"
-            className="mt-2 w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="mt-2"
           />
           {error && (
             <p
-              className="mt-1 text-[11px] text-destructive"
+              className="mt-1 text-xs text-destructive"
               title={error}
               role="alert"
             >
               Could not save reading state.{" "}
               <button
                 type="button"
-                className="underline underline-offset-2 hover:text-foreground"
+                className="rounded-sm underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                 onClick={() => saveNow(statusRef.current, notesRef.current)}
               >
                 Retry
@@ -411,7 +429,7 @@ export function BookPanel({
         </div>
 
         <div className="mt-4">
-          <h3 className={SECTION_LABEL}>Description</h3>
+          <h3 className={EYEBROW}>Description</h3>
           {description ? (
             <div
               className="mt-2 space-y-2 break-words text-sm leading-relaxed [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
@@ -426,12 +444,12 @@ export function BookPanel({
 
         {tags.length > 0 && (
           <div className="mt-4">
-            <h3 className={SECTION_LABEL}>Tags</h3>
+            <h3 className={EYEBROW}>Tags</h3>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="max-w-full truncate rounded-full border bg-muted/50 px-2 py-0.5 text-[11px]"
+                  className="max-w-full truncate rounded-full border bg-muted/60 px-2 py-0.5 text-xs"
                   title={tag}
                 >
                   {tag}

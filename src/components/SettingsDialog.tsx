@@ -2,15 +2,14 @@ import { invoke } from "@tauri-apps/api/core";
 import { downloadDir } from "@tauri-apps/api/path";
 import { save as chooseSavePath, open } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { FolderOpen, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
-import { SECTION_LABEL } from "@/components/ui/typography";
+import { EYEBROW } from "@/components/ui/typography";
 import { formatBytes } from "@/lib/format";
 import { CALIBRE_DOWNLOAD_URL } from "@/lib/links";
 import { useAppVersion } from "@/lib/useAppVersion";
@@ -427,25 +426,11 @@ export function SettingsDialog({
         if (!open) onClose();
       }}
     >
-      <DialogContent
-        showCloseButton={false}
-        size="lg"
-        className="flex max-h-[90vh] flex-col overflow-hidden p-0"
-      >
-        <div className="flex items-center justify-between border-b px-5 py-3">
-          <DialogTitle>Settings</DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Close"
-            onClick={onClose}
-          >
-            <X aria-hidden />
-          </Button>
-        </div>
+      <DialogContent size="lg">
+        <DialogHeader title="Settings" onClose={onClose} />
 
         {error && (
-          <div className="border-b px-5 py-2">
+          <div className="shrink-0 border-b px-5 py-2">
             <Callout role="alert" className="whitespace-pre-wrap">
               <ScrollArea className="max-h-20">{error}</ScrollArea>
             </Callout>
@@ -456,7 +441,7 @@ export function SettingsDialog({
           <div className="p-5">
             <BandHeading first title="Library" />
             <section className="mt-5">
-              <h3 className={SECTION_LABEL}>Folder</h3>
+              <h3 className={EYEBROW}>Folder</h3>
               <div className="mt-2 flex gap-2">
                 <Input
                   value={config.libraryDir}
@@ -466,13 +451,11 @@ export function SettingsDialog({
                   spellCheck={false}
                   className="cursor-default bg-muted/20"
                 />
-                <Button variant="outline" size="sm" onClick={pickLibrary}>
-                  <FolderOpen aria-hidden />
+                <Button variant="outline" onClick={pickLibrary}>
                   Choose…
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
                   disabled={!config.libraryDir}
                   onClick={() => void openFolder(config.libraryDir)}
                 >
@@ -518,7 +501,7 @@ export function SettingsDialog({
                   </div>
                 </Callout>
               ) : (
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   New drops go here; books already filed stay where they were.
                 </p>
               )}
@@ -526,7 +509,7 @@ export function SettingsDialog({
 
             <section className="mt-5">
               <div className="flex items-center justify-between gap-2">
-                <h3 className={SECTION_LABEL}>File names</h3>
+                <h3 className={EYEBROW}>File names</h3>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -564,8 +547,8 @@ export function SettingsDialog({
                   <Button
                     key={token}
                     variant="outline"
-                    size="sm"
-                    className="h-6 px-2 font-mono text-[11px]"
+                    size="xs"
+                    className="h-6 px-2 font-mono"
                     onClick={() => insertToken(token)}
                   >
                     {`{${token}}`}
@@ -586,7 +569,7 @@ export function SettingsDialog({
 
               {preview.length > 0 && (
                 <div className="mt-3 rounded-lg border bg-muted/30 px-3 py-2">
-                  <p className={SECTION_LABEL}>Preview</p>
+                  <p className={EYEBROW}>Preview</p>
                   <ul className="mt-1 space-y-0.5">
                     {preview.slice(0, 5).map(({ book, path, next }) => (
                       <li
@@ -603,7 +586,7 @@ export function SettingsDialog({
                     ))}
                   </ul>
                   {preview.length > 5 && (
-                    <p className="mt-1 text-[11px] text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       and {preview.length - 5} more…
                     </p>
                   )}
@@ -625,7 +608,7 @@ export function SettingsDialog({
                         {plan.moves.map((move) => (
                           <li
                             key={move.id}
-                            className="truncate text-[11px]"
+                            className="truncate text-xs"
                             title={`${move.from} → ${move.to}`}
                           >
                             <span className="text-muted-foreground">
@@ -639,7 +622,7 @@ export function SettingsDialog({
                     </ScrollArea>
                   )}
                   {plan.problems.length > 0 && (
-                    <ul className="mt-1 text-[11px]">
+                    <ul className="mt-1 text-xs">
                       {plan.problems.map((problem) => (
                         <li key={problem}>{problem}</li>
                       ))}
@@ -679,11 +662,10 @@ export function SettingsDialog({
                     }
                     onClick={() => void startRename()}
                   >
-                    <RefreshCw aria-hidden />
                     {planning ? "Checking…" : "Rename library…"}
                   </Button>
                   {renameReport && (
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Renamed {renameReport.renamed} file
                       {renameReport.renamed === 1 ? "" : "s"}.
                       {renameReport.problems.length > 0
@@ -694,7 +676,7 @@ export function SettingsDialog({
                 </div>
               )}
               {renameReport && renameReport.problems.length > 0 && (
-                <ul className="mt-1 text-[11px] text-destructive">
+                <ul className="mt-1 text-xs text-destructive">
                   {renameReport.problems.slice(0, 5).map((problem) => (
                     <li key={problem}>{problem}</li>
                   ))}
@@ -704,7 +686,7 @@ export function SettingsDialog({
 
             <BandHeading title="Importing" />
             <section className="mt-5">
-              <h3 className={SECTION_LABEL}>Processing</h3>
+              <h3 className={EYEBROW}>Processing</h3>
               <div className="mt-2 space-y-1">
                 <ToggleRow
                   label="Fetch metadata online"
@@ -725,7 +707,7 @@ export function SettingsDialog({
             </section>
 
             <section className="mt-5">
-              <h3 className={SECTION_LABEL}>calibre</h3>
+              <h3 className={EYEBROW}>calibre</h3>
               <div className="mt-2 flex items-center gap-2">
                 {install ? (
                   <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
@@ -741,12 +723,11 @@ export function SettingsDialog({
                   size="sm"
                   onClick={() => void onRecheck()}
                 >
-                  <RefreshCw aria-hidden />
-                  Re-check
+                  Recheck
                 </Button>
               </div>
               <p
-                className="mt-2 truncate text-[11px] text-muted-foreground"
+                className="mt-2 truncate text-xs text-muted-foreground"
                 title={config.calibreDir ?? undefined}
               >
                 {config.calibreDir
@@ -755,7 +736,6 @@ export function SettingsDialog({
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Button variant="outline" size="sm" onClick={pickCalibre}>
-                  <FolderOpen aria-hidden />
                   Change…
                 </Button>
                 <Button
@@ -779,7 +759,7 @@ export function SettingsDialog({
 
             <BandHeading title="Data" />
             <section className="mt-5">
-              <h3 className={SECTION_LABEL}>Archive originals</h3>
+              <h3 className={EYEBROW}>Archive originals</h3>
               <div className="mt-2">
                 <ToggleRow
                   label="Keep a copy of every dropped file"
@@ -796,8 +776,7 @@ export function SettingsDialog({
                       spellCheck={false}
                       className="cursor-default bg-muted/20"
                     />
-                    <Button variant="outline" size="sm" onClick={pickArchive}>
-                      <FolderOpen aria-hidden />
+                    <Button variant="outline" onClick={pickArchive}>
                       Choose…
                     </Button>
                   </div>
@@ -817,7 +796,7 @@ export function SettingsDialog({
             </section>
 
             <section className="mt-5">
-              <h3 className={SECTION_LABEL}>Backup</h3>
+              <h3 className={EYEBROW}>Backup</h3>
               <div className="mt-2 flex items-center gap-2">
                 <p className="min-w-0 flex-1 text-xs text-muted-foreground">
                   {exportMessage ??
@@ -859,7 +838,6 @@ export function SettingsDialog({
                 title={config.homeDir}
                 onClick={() => void openFolder(config.homeDir)}
               >
-                <FolderOpen aria-hidden />
                 Open data folder
               </Button>
             </section>

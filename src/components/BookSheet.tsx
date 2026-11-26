@@ -11,12 +11,12 @@ import { Callout } from "@/components/ui/callout";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogTitle,
+  DialogFooter,
+  DialogHeader,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SECTION_LABEL } from "@/components/ui/typography";
+import { EYEBROW, FIELD_LABEL } from "@/components/ui/typography";
 import { textToParagraphHtml } from "@/lib/description";
 import { sourceLabel } from "@/lib/format";
 import { parseTags, serializeTags } from "@/lib/tags";
@@ -516,49 +516,35 @@ export function BookSheet({
         requestClose();
       }}
     >
-      <DialogContent
-        showCloseButton={false}
-        className="flex max-h-[92vh] w-[calc(100%-2rem)] flex-col overflow-hidden p-0 sm:max-w-[900px]"
-      >
-        <div className="flex items-center justify-between border-b px-5 py-3">
-          <div>
-            <DialogTitle>Edit book</DialogTitle>
-            <p className="text-xs text-muted-foreground">
-              {book.title || "Untitled"}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void refresh()}
-              disabled={saving || refreshing || book.missing}
-              title={
-                book.missing ? "Restore the library file first" : undefined
-              }
-            >
-              <RefreshCw
-                className={cn(refreshing && "animate-spin")}
-                aria-hidden
-              />
-              {refreshing ? "Fetching…" : "Refresh online"}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Close"
-              onClick={requestClose}
-              disabled={saving}
-            >
-              <X aria-hidden />
-            </Button>
-          </div>
-        </div>
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[900px]">
+        <DialogHeader
+          title="Edit book"
+          subtitle={book.title || "Untitled"}
+          onClose={requestClose}
+          closeDisabled={saving}
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void refresh()}
+            disabled={saving || refreshing || book.missing}
+            title={book.missing ? "Restore the library file first" : undefined}
+          >
+            <RefreshCw
+              className={cn(refreshing && "animate-spin")}
+              aria-hidden
+            />
+            {refreshing ? "Fetching…" : "Refresh online"}
+          </Button>
+        </DialogHeader>
 
         <ScrollArea className="min-h-0 flex-1">
-          <div className="grid gap-6 p-5 md:grid-cols-[220px_1fr]">
+          {/* Always two columns: the minimum window still leaves the form
+              enough room, so a single-column fallback only ever flashed at the
+              very edge of the range. */}
+          <div className="grid grid-cols-[220px_1fr] gap-6 p-5">
             <div className="self-start">
-              <h3 className={SECTION_LABEL}>Cover</h3>
+              <h3 className={EYEBROW}>Cover</h3>
               <div className="mt-2 flex flex-col gap-2">
                 <CoverOption
                   label="In the file"
@@ -575,6 +561,7 @@ export function BookSheet({
                     title={book.title}
                     homeDir={homeDir}
                     updatedAt={book.updatedAt}
+                    variant="sheet"
                   />
                 </CoverOption>
 
@@ -621,7 +608,7 @@ export function BookSheet({
                 <Upload aria-hidden />
                 Upload…
               </Button>
-              <p className="mt-2 text-[11px] text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 JPEG, PNG, or WebP. The crop is exported at 1200×1800.
               </p>
             </div>
@@ -656,10 +643,7 @@ export function BookSheet({
 
               <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
                 <div>
-                  <label
-                    htmlFor="book-series"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
+                  <label htmlFor="book-series" className={FIELD_LABEL}>
                     {FIELD_LABELS.series}
                   </label>
                   <Input
@@ -684,7 +668,7 @@ export function BookSheet({
                           key={`${candidate.source}:${candidate.value}`}
                           type="button"
                           onClick={() => setField("series", candidate.value)}
-                          className="max-w-full truncate text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                          className="max-w-full truncate rounded-sm text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                         >
                           Use “{candidate.value}” from{" "}
                           {candidate.source === "file"
@@ -696,10 +680,7 @@ export function BookSheet({
                   )}
                 </div>
                 <div>
-                  <label
-                    htmlFor="book-series-index"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
+                  <label htmlFor="book-series-index" className={FIELD_LABEL}>
                     {FIELD_LABELS.seriesIndex}
                   </label>
                   <Input
@@ -733,10 +714,8 @@ export function BookSheet({
 
               <div>
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {FIELD_LABELS.tags}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className={FIELD_LABEL}>{FIELD_LABELS.tags}</span>
+                  <span className="text-xs text-muted-foreground">
                     Enter or comma adds a tag
                   </span>
                 </div>
@@ -751,7 +730,7 @@ export function BookSheet({
 
                 {tagAlternatives.length > 0 && (
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       Other sources
                     </span>
                     {tagAlternatives.map((candidate) => {
@@ -759,7 +738,7 @@ export function BookSheet({
                       return (
                         <span
                           key={`${candidate.source}:${candidate.value}`}
-                          className="inline-flex items-center gap-1 rounded-lg border bg-muted/30 py-0.5 pl-2 pr-1 text-[11px]"
+                          className="inline-flex items-center gap-1 rounded-lg border bg-muted/30 py-0.5 pl-2 pr-1 text-xs"
                         >
                           <button
                             type="button"
@@ -769,7 +748,7 @@ export function BookSheet({
                                 serializeTags(parseTags(candidate.value)),
                               )
                             }
-                            className="hover:underline"
+                            className="rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                           >
                             Use {count} from{" "}
                             {candidate.source === "file"
@@ -781,7 +760,7 @@ export function BookSheet({
                             aria-label="Remove this tag alternative"
                             title="Remove this alternative"
                             onClick={() => removeCandidate("tags", candidate)}
-                            className="rounded p-0.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                            className="rounded-md p-0.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                           >
                             <X className="size-3" aria-hidden />
                           </button>
@@ -810,7 +789,7 @@ export function BookSheet({
           </div>
         </ScrollArea>
 
-        <div className="border-t px-5 py-3">
+        <div className="shrink-0 border-t px-5 py-3">
           {error && (
             <Callout className="mb-3 whitespace-pre-wrap">
               <ScrollArea className="max-h-20">{error}</ScrollArea>
@@ -863,19 +842,24 @@ export function BookSheet({
             if (!open) setConfirmDiscard(false);
           }}
         >
-          <DialogContent showCloseButton={false}>
-            <DialogTitle>Discard changes?</DialogTitle>
-            <DialogDescription className="mt-1 text-sm text-muted-foreground">
-              The fields and cover you changed will be lost.
-            </DialogDescription>
-            <div className="mt-5 flex justify-end gap-2">
+          <DialogContent>
+            <DialogHeader
+              title="Discard changes?"
+              onClose={() => setConfirmDiscard(false)}
+            />
+            <div className="p-5">
+              <p className="text-sm text-muted-foreground">
+                The fields and cover you changed will be lost.
+              </p>
+            </div>
+            <DialogFooter>
               <Button variant="ghost" onClick={() => setConfirmDiscard(false)}>
                 Keep editing
               </Button>
               <Button variant="destructive" onClick={onClose}>
                 Discard
               </Button>
-            </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
@@ -904,7 +888,7 @@ function CoverOption({
         type="button"
         onClick={onSelect}
         aria-pressed={selected}
-        className="block w-full text-left"
+        className="block w-full rounded-lg text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <span
           className={cn(
@@ -914,12 +898,12 @@ function CoverOption({
         >
           {children}
           {size && (
-            <span className="pointer-events-none absolute bottom-1 left-1 rounded bg-black/65 px-1.5 py-0.5 text-[10px] font-medium leading-none text-white tabular-nums">
+            <span className="pointer-events-none absolute bottom-1 left-1 rounded-sm bg-black/65 px-1.5 py-0.5 text-[11px] font-medium leading-none text-white tabular-nums">
               {size}
             </span>
           )}
         </span>
-        <span className="mt-1 block truncate text-[11px] text-muted-foreground">
+        <span className="mt-1 block truncate text-xs text-muted-foreground">
           {label}
         </span>
       </button>
@@ -934,7 +918,7 @@ function CoverOption({
             event.stopPropagation();
             onRemove();
           }}
-          className="absolute right-1 top-1 rounded-full bg-background/85 p-1 text-foreground/80 shadow-sm backdrop-blur transition hover:bg-background hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="absolute right-1 top-1 rounded-full bg-background/85 p-1 text-foreground/80 shadow-sm backdrop-blur transition hover:bg-background hover:text-destructive focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <X className="size-3.5" aria-hidden />
         </button>
@@ -947,7 +931,7 @@ function CoverImage({ src }: { src: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
-      <span className="flex h-full w-full items-center justify-center bg-muted text-[10px] text-muted-foreground">
+      <span className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
         Missing
       </span>
     );

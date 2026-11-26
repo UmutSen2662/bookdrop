@@ -48,7 +48,7 @@ function ScrollBar({
       <ScrollAreaPrimitive.Thumb
         data-slot="scroll-area-thumb"
         className={cn(
-          "rounded-full bg-border",
+          "rounded-full bg-muted-foreground/30 transition-colors hover:bg-muted-foreground/50",
           orientation === "vertical" ? "w-full" : "h-full",
         )}
       />

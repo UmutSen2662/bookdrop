@@ -6,7 +6,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { POPOVER_LABEL } from "@/components/ui/typography";
+import { EYEBROW } from "@/components/ui/typography";
 import type { ShareAddress, ShareState } from "@/lib/useOpds";
 
 type Props = {
@@ -45,13 +45,13 @@ export function ShareButton({ state, onStart, onStop, onRefresh }: Props) {
           Sharing failed
         </PopoverTrigger>
         <PopoverContent align="start" side="top" className="w-80">
-          <PopoverTitle className={POPOVER_LABEL}>Sharing failed</PopoverTitle>
+          <PopoverTitle className={EYEBROW}>Sharing failed</PopoverTitle>
           <p className="text-xs leading-relaxed text-muted-foreground">
             {state.message}
           </p>
           <div>
             <Button size="xs" variant="outline" onClick={onStart}>
-              Try again
+              Retry
             </Button>
           </div>
         </PopoverContent>
@@ -86,9 +86,7 @@ export function ShareButton({ state, onStart, onStop, onRefresh }: Props) {
           className="w-[26rem] max-w-[calc(100vw-2rem)] gap-0 p-0"
         >
           <div className="border-b px-3 py-2">
-            <PopoverTitle className={POPOVER_LABEL}>
-              Share over Wi-Fi
-            </PopoverTitle>
+            <PopoverTitle className={EYEBROW}>Share over Wi-Fi</PopoverTitle>
           </div>
           <div className="space-y-2 px-3 py-2.5">
             <div className="space-y-1.5">
@@ -110,7 +108,7 @@ export function ShareButton({ state, onStart, onStop, onRefresh }: Props) {
               {state.count} {state.count === 1 ? "book" : "books"} · anyone on
               this Wi-Fi can browse and download them.
             </p>
-            <p className="text-[11px] leading-relaxed text-muted-foreground/80">
+            <p className="text-xs leading-relaxed text-muted-foreground/80">
               If the reader can't connect, allow Bookdrop through Windows
               Firewall.
             </p>
@@ -147,14 +145,14 @@ function UrlRow({ address }: { address: ShareAddress }) {
   return (
     <div className="space-y-0.5">
       <p
-        className="truncate text-[11px] font-medium text-muted-foreground"
+        className="truncate text-xs font-medium text-muted-foreground"
         title={address.name}
       >
         {address.name}
       </p>
       <div className="flex items-center gap-2">
         <code
-          className="min-w-0 flex-1 truncate font-mono text-[11px]"
+          className="min-w-0 flex-1 truncate font-mono text-xs"
           title={href}
         >
           {href}

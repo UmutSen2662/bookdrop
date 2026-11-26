@@ -1,4 +1,3 @@
-import { Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
@@ -7,7 +6,8 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogTitle,
+  DialogFooter,
+  DialogHeader,
 } from "@/components/ui/dialog";
 import { errorMessage } from "@/pipeline/errors";
 import type { Book } from "@/pipeline/types";
@@ -43,45 +43,36 @@ export function RemoveDialog({ book, onClose, onRemove }: Props) {
         if (!open && !busy) onClose();
       }}
     >
-      <DialogContent showCloseButton={false} size="md">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <DialogTitle>Remove this book?</DialogTitle>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {book.title || "Untitled"}
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Close"
-            disabled={busy}
-            onClick={onClose}
-          >
-            <X aria-hidden />
-          </Button>
+      <DialogContent size="md">
+        <DialogHeader
+          title="Remove this book?"
+          subtitle={book.title || "Untitled"}
+          onClose={onClose}
+          closeDisabled={busy}
+        />
+
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+          <DialogDescription>
+            {book.missing
+              ? "The library file is already missing. This removes the book, its cached cover, and its reading notes."
+              : "This removes the book from the library, including its cached cover, candidate covers, and reading notes. If the EPUB is still in the library folder, it is deleted too."}{" "}
+            The source file you originally dropped is never touched.
+          </DialogDescription>
+
+          {book.archivedPath && (
+            <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm">
+              <Checkbox
+                checked={deleteArchive}
+                onCheckedChange={setDeleteArchive}
+              />
+              Also delete the archived copy
+            </label>
+          )}
+
+          {error && <Callout className="mt-3">{error}</Callout>}
         </div>
 
-        <DialogDescription className="mt-4 text-sm text-muted-foreground">
-          {book.missing
-            ? "The library file is already missing. This removes the book, its cached cover, and its reading notes."
-            : "This removes the book from the library, including its cached cover, candidate covers, and reading notes. If the EPUB is still in the library folder, it is deleted too."}{" "}
-          The source file you originally dropped is never touched.
-        </DialogDescription>
-
-        {book.archivedPath && (
-          <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm">
-            <Checkbox
-              checked={deleteArchive}
-              onCheckedChange={setDeleteArchive}
-            />
-            Also delete the archived copy
-          </label>
-        )}
-
-        {error && <Callout className="mt-3">{error}</Callout>}
-
-        <div className="mt-5 flex justify-end gap-2">
+        <DialogFooter>
           <Button variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
@@ -90,10 +81,9 @@ export function RemoveDialog({ book, onClose, onRemove }: Props) {
             onClick={() => void remove()}
             disabled={busy}
           >
-            <Trash2 aria-hidden />
             {busy ? "Removing…" : "Remove"}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

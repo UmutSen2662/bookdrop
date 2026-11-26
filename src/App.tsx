@@ -1,8 +1,9 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Loader2, RefreshCw, RotateCcw, X } from "lucide-react";
+import { Loader2, RotateCcw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BookDrawer } from "@/components/BookDrawer";
 import { BookGrid } from "@/components/BookGrid";
 import { BookPanel } from "@/components/BookPanel";
 import { BookSheet } from "@/components/BookSheet";
@@ -81,6 +82,16 @@ function App() {
 
   const share = useOpds(library.books, library.config?.homeDir ?? "");
 
+  const selectedBook = useMemo(
+    () =>
+      library.books.find(
+        (book) => book.id === library.selectedId && book.status !== "flagged",
+      ) ?? null,
+    [library.books, library.selectedId],
+  );
+  // Below the wide breakpoint the details panel is an overlay, not a sidebar.
+  const drawerOpen = !wide && selectedBook !== null;
+
   useEffect(() => {
     const timer = window.setTimeout(() => setDebounced(query), 100);
     return () => window.clearTimeout(timer);
@@ -94,8 +105,9 @@ function App() {
       const typing = isTextField(event.target);
 
       if (
-        (event.key === "/" && !typing) ||
-        ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f")
+        !drawerOpen &&
+        ((event.key === "/" && !typing) ||
+          ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f"))
       ) {
         event.preventDefault();
         searchRef.current?.focus();
@@ -104,6 +116,9 @@ function App() {
       }
 
       if (event.key === "Escape") {
+        // The drawer owns Escape while it is open; this also lets an open
+        // select popup close itself without closing the drawer underneath.
+        if (drawerOpen) return;
         if (attentionOpen) {
           setAttentionOpen(false);
           return;
@@ -127,6 +142,7 @@ function App() {
     editing,
     removingBook,
     coverViewBook,
+    drawerOpen,
     library.selectedId,
     library.setSelectedId,
   ]);
@@ -254,14 +270,6 @@ function App() {
     if (flagged.length === 0 && missing.length === 0) setAttentionOpen(false);
   }, [flagged.length, missing.length]);
 
-  const selectedBook = useMemo(
-    () =>
-      library.books.find(
-        (book) => book.id === library.selectedId && book.status !== "flagged",
-      ) ?? null,
-    [library.books, library.selectedId],
-  );
-
   // The library is the best source of spelling for tags and series names;
   // reusing an existing value is what keeps them from fragmenting.
   const tagSuggestions = useMemo(
@@ -297,6 +305,7 @@ function App() {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (editing || settingsOpen || removingBook || coverViewBook) return;
+      if (drawerOpen) return;
       if (
         !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
       ) {
@@ -378,7 +387,10 @@ function App() {
       }
 
       if (nextId === null) return;
-      library.setSelectedId(nextId);
+      // On wide screens the panel is docked and should follow the arrows. On
+      // narrow screens selecting would open the drawer and take focus away, so
+      // arrows only move focus; Enter, Space, or a click opens the book.
+      if (wide) library.setSelectedId(nextId);
       requestAnimationFrame(() => {
         document
           .getElementById(`book-${nextId}`)
@@ -395,6 +407,8 @@ function App() {
     settingsOpen,
     removingBook,
     coverViewBook,
+    drawerOpen,
+    wide,
     library.selectedId,
     library.setSelectedId,
   ]);
@@ -424,9 +438,7 @@ function App() {
     return (
       <div className="flex h-screen items-center justify-center bg-background px-6 text-foreground">
         <div className="w-full max-w-lg rounded-2xl border bg-card p-6 shadow-sm">
-          <h1 className="text-base font-semibold">
-            Could not open the library
-          </h1>
+          <h1 className="text-lg font-semibold">Could not open the library</h1>
           <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
             {library.error ?? "Unknown error"}
           </p>
@@ -436,7 +448,7 @@ function App() {
             onClick={() => window.location.reload()}
           >
             <RotateCcw aria-hidden />
-            Try again
+            Retry
           </Button>
         </div>
       </div>
@@ -501,7 +513,10 @@ function App() {
         className="mx-auto flex h-full w-full min-w-0"
         style={{ maxWidth: LAYOUT.appMaxWidth }}
       >
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div
+          className="flex min-w-0 flex-1 flex-col"
+          inert={drawerOpen || undefined}
+        >
           <TopBar
             query={query}
             onQueryChange={setQuery}
@@ -543,7 +558,7 @@ function App() {
           />
 
           {!library.demo && !library.install && (
-            <div className="border-b bg-amber-500/10 px-4 py-2">
+            <div className="border-b bg-amber-500/10 px-5 py-2">
               <div className="flex w-full items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
                 <span className="min-w-0 flex-1">
                   calibre was not found. Dropping is disabled until it is on
@@ -554,8 +569,7 @@ function App() {
                   variant="outline"
                   onClick={() => void library.recheckCalibre()}
                 >
-                  <RefreshCw aria-hidden />
-                  Re-check
+                  Recheck
                 </Button>
                 <Button
                   size="xs"
@@ -571,7 +585,7 @@ function App() {
           )}
 
           {outsideBooks.length > 0 && outsideDismissedFor !== libraryDir && (
-            <div className="border-b bg-amber-500/10 px-4 py-2">
+            <div className="border-b bg-amber-500/10 px-5 py-2">
               <div className="flex w-full flex-wrap items-start gap-x-3 gap-y-2 text-xs text-amber-800 dark:text-amber-200">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">
@@ -695,22 +709,22 @@ function App() {
       </div>
 
       {!wide && selectedBook && (
-        <div
-          className="fixed inset-0 z-40 flex justify-end bg-black/40"
-          onClick={() => library.setSelectedId(null)}
+        <BookDrawer
+          blocked={
+            editing ||
+            settingsOpen ||
+            Boolean(removingBook) ||
+            Boolean(coverViewBook)
+          }
+          returnFocusTo={`book-${selectedBook.id}`}
+          onClose={() => library.setSelectedId(null)}
         >
-          <aside
-            className="h-full border-l bg-background shadow-2xl"
-            style={{ width: `min(${LAYOUT.panelWidth}px, 92vw)` }}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <BookPanel
-              key={selectedBook.id}
-              book={selectedBook}
-              {...panelProps}
-            />
-          </aside>
-        </div>
+          <BookPanel
+            key={selectedBook.id}
+            book={selectedBook}
+            {...panelProps}
+          />
+        </BookDrawer>
       )}
 
       {editing && selectedBook && library.host && (

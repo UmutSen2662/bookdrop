@@ -70,7 +70,7 @@ export function TagEditor({ value, suggestions, onChange, disabled }: Props) {
     <div>
       <div
         className={cn(
-          "flex min-h-9 flex-wrap items-center gap-1.5 rounded-lg border border-input bg-transparent px-2 py-1.5 transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50",
+          "flex min-h-8 flex-wrap items-center gap-1.5 rounded-lg border border-input bg-transparent px-2 py-1 transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50",
           disabled && "pointer-events-none opacity-50",
         )}
         onClick={() => inputRef.current?.focus()}
@@ -90,7 +90,7 @@ export function TagEditor({ value, suggestions, onChange, disabled }: Props) {
                 event.stopPropagation();
                 remove(tag);
               }}
-              className="rounded-full p-0.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="rounded-full p-0.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <X className="size-3" aria-hidden />
             </button>
@@ -130,9 +130,7 @@ export function TagEditor({ value, suggestions, onChange, disabled }: Props) {
 
       {available.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] text-muted-foreground">
-            In your library
-          </span>
+          <span className="text-xs text-muted-foreground">In your library</span>
           {available.map((tag) => (
             <button
               key={tag}
@@ -142,7 +140,7 @@ export function TagEditor({ value, suggestions, onChange, disabled }: Props) {
                 onChange(serializeTags([...tags, tag]));
                 inputRef.current?.focus();
               }}
-              className="rounded-full border border-dashed px-2 py-0.5 text-xs text-muted-foreground transition hover:border-solid hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="rounded-full border border-dashed px-2 py-0.5 text-xs text-muted-foreground transition hover:border-solid hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               + {tag}
             </button>

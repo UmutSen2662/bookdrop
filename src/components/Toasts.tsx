@@ -88,7 +88,7 @@ export function Toasts({ toasts, onDismiss }: Props) {
                 type="button"
                 aria-label="Dismiss"
                 onClick={() => onDismiss(toast.id)}
-                className="-mr-1 -mt-1 rounded p-1 text-muted-foreground hover:text-foreground"
+                className="-mr-1 -mt-1 rounded-md p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <X className="size-3.5" aria-hidden />
               </button>
